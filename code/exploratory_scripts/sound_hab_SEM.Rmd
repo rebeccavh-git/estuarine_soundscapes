@@ -1,0 +1,263 @@
+<<<<<<< HEAD
+---
+title: "sound_hab_SEM"
+author: "Becca Van Hoeck"
+date: "11/12/2020"
+output: pdf_document
+---
+
+Final Project for BIOL 891 Fall 2020
+
+This is an initial exploration of using structural equation models to evaluate whether estuarine soundscape metrics relate to traditional ecosystem metrics of the habitat and fish community. There is interest among soundscape ecologists to develop methods of using soundscapes as rapid indicators of biodiversity and habitat conditions; however, for these applications to become practical, we need to advance understand the drivers of soundscape variability. 
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Load libraries
+
+```{r}
+library(ggplot2)
+library(piecewiseSEM)
+library(lavaan)
+
+```
+
+## Setwd, load data, and explore data patterns
+
+```{r}
+#setwd("C:/Users/Becca/Documents/Grad_School/Research/Projects/Sound_Habitat/data")
+ecometrics = read.csv("data/clean_data/ecometrics.csv", header = TRUE)
+
+data_all = ecometrics[,c("site", "richness_comb", "comm_richness_sum", "avg_spl_low")]
+data = ecometrics[-c(2,6,10,14),] # removing mudflat
+
+ggplot(aes(x = richness_comb, y = comm_richness_sum), data = data)+ theme_bw()+
+  geom_point(aes(color = habitat))+
+  ggtitle("Relationship between Community Richness & Habitat Richness")
+
+ggplot(aes(x = richness_comb, y = avg_spl_low), data = data)+ theme_bw()+
+  geom_point(aes(color = habitat))+
+  ggtitle("Relationship between habitat richness & Low frequency sound level")
+cor(data$richness_comb, data$avg_spl_low)
+
+ggplot(aes(x = comm_richness_sum, y = avg_spl_low), data = data)+ theme_bw()+
+  geom_point(aes(color = habitat))+
+  ggtitle("Relationship between Community richness & Low frequency sound level")
+cor(data$comm_richness_sum, data$avg_spl_low)
+
+ggplot(aes(x = totalcover, y = avg_spl_low), data = data)+ theme_bw()+
+  geom_point(aes(color = habitat))+
+  ggtitle("Relationship between total biogenic habitat cover & sound level")
+#cor(data$totalcover, data$avg_spl_low)
+
+```
+
+## Prepare for SEm
+
+```{r}
+
+indirect_mod = lm(avg_spl_low ~ richness_comb + comm_richness_sum, data = data)
+direct_mod = lm(avg_spl_low ~ richness_comb*habitat, data = data)
+
+summary(indirect_mod)
+summary(direct_mod)
+
+```
+
+## Construct SEM with piecewiseSEM
+
+Habitat richness ---> Community richness ---> Low freq SPL
+          |_____________________________________|^
+
+# Notes from James: Richness is a count variable, try poisson and/or negative binomial distributions
+   
+```{r}
+sound_psem = psem(
+  lm(comm_richness_sum ~ richness_comb, data = data), 
+  lm(avg_spl_low ~ comm_richness_sum + richness_comb, data = data),
+  data = data)
+summary(sound_psem)
+
+```
+
+## Pseudo-code to evaluate relationships for each habitat type
+
+# Notes from James & Grace: 
+# can I separate the effect of habitat dampening/sample radius & sound production in the model?
+# Allen used rarefaction to understand the changing sampling radius
+
+```{r}
+# build psem model with habitat interaction
+# use multigroup function to evaluate group effects
+
+# sound_psem_hab = psem(
+#   lm(direct effects)
+#   lm(mediated effects)
+# )
+# 
+# (pmultigroup <- multigroup(sound_psem_hab, group = "habitat"))
+
+```
+
+## Code from book for using habitat condition as a composite variable
+
+# My ability to use this method is limited by my ability to model the relationship between the indicator variables and the composite
+
+```{r}
+
+# cover_model <- lm(rich ~ cover + I(cover^2), keeley)
+# 
+# beta_cover <- summary(cover_model)$coefficients[2, 1]
+# beta_cover2 <- summary(cover_model)$coefficients[3, 1]
+# 
+# composite <- beta_cover * keeley$cover + beta_cover2 * (keeley$cover)^2
+# 
+# keeley$composite <- composite
+# 
+# keeley_psem <- psem(
+#   lm(firesev ~ cover, keeley),
+#   lm(rich ~ composite + firesev, keeley)
+# )
+# 
+# summary(keeley_psem, .progressBar = FALSE)
+
+```
+
+## An interesting route, could be the use of a latent variable property to model the way
+## soundscape variables are indicating diversity
+## For example, I have a number of metrics indicating some feature of the soundscape
+## such as: bioacoustic index, acoustic entropy, ACI, SPL
+
+=======
+---
+title: "sound_hab_SEM"
+author: "Becca Van Hoeck"
+date: "11/12/2020"
+output: pdf_document
+---
+
+Final Project for BIOL 891 Fall 2020
+
+This is an initial exploration of using structural equation models to evaluate whether estuarine soundscape metrics relate to traditional ecosystem metrics of the habitat and fish community. There is interest among soundscape ecologists to develop methods of using soundscapes as rapid indicators of biodiversity and habitat conditions; however, for these applications to become practical, we need to advance understand the drivers of soundscape variability. 
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Load libraries
+
+```{r}
+library(ggplot2)
+library(piecewiseSEM)
+library(lavaan)
+
+```
+
+## Setwd, load data, and explore data patterns
+
+```{r}
+#setwd("C:/Users/Becca/Documents/Grad_School/Research/Projects/Sound_Habitat/data")
+ecometrics = read.csv("data/clean_data/ecometrics.csv", header = TRUE)
+
+data_all = ecometrics[,c("site", "richness_comb", "comm_richness_sum", "avg_spl_low")]
+data = ecometrics[-c(2,6,10,14),] # removing mudflat
+
+ggplot(aes(x = richness_comb, y = comm_richness_sum), data = data)+ theme_bw()+
+  geom_point(aes(color = habitat))+
+  ggtitle("Relationship between Community Richness & Habitat Richness")
+
+ggplot(aes(x = richness_comb, y = avg_spl_low), data = data)+ theme_bw()+
+  geom_point(aes(color = habitat))+
+  ggtitle("Relationship between habitat richness & Low frequency sound level")
+cor(data$richness_comb, data$avg_spl_low)
+
+ggplot(aes(x = comm_richness_sum, y = avg_spl_low), data = data)+ theme_bw()+
+  geom_point(aes(color = habitat))+
+  ggtitle("Relationship between Community richness & Low frequency sound level")
+cor(data$comm_richness_sum, data$avg_spl_low)
+
+ggplot(aes(x = totalcover, y = avg_spl_low), data = data)+ theme_bw()+
+  geom_point(aes(color = habitat))+
+  ggtitle("Relationship between total biogenic habitat cover & sound level")
+#cor(data$totalcover, data$avg_spl_low)
+
+```
+
+## Prepare for SEm
+
+```{r}
+
+indirect_mod = lm(avg_spl_low ~ richness_comb + comm_richness_sum, data = data)
+direct_mod = lm(avg_spl_low ~ richness_comb*habitat, data = data)
+
+summary(indirect_mod)
+summary(direct_mod)
+
+```
+
+## Construct SEM with piecewiseSEM
+
+Habitat richness ---> Community richness ---> Low freq SPL
+          |_____________________________________|^
+
+# Notes from James: Richness is a count variable, try poisson and/or negative binomial distributions
+   
+```{r}
+sound_psem = psem(
+  lm(comm_richness_sum ~ richness_comb, data = data), 
+  lm(avg_spl_low ~ comm_richness_sum + richness_comb, data = data),
+  data = data)
+summary(sound_psem)
+
+```
+
+## Pseudo-code to evaluate relationships for each habitat type
+
+# Notes from James & Grace: 
+# can I separate the effect of habitat dampening/sample radius & sound production in the model?
+# Allen used rarefaction to understand the changing sampling radius
+
+```{r}
+# build psem model with habitat interaction
+# use multigroup function to evaluate group effects
+
+# sound_psem_hab = psem(
+#   lm(direct effects)
+#   lm(mediated effects)
+# )
+# 
+# (pmultigroup <- multigroup(sound_psem_hab, group = "habitat"))
+
+```
+
+## Code from book for using habitat condition as a composite variable
+
+# My ability to use this method is limited by my ability to model the relationship between the indicator variables and the composite
+
+```{r}
+
+# cover_model <- lm(rich ~ cover + I(cover^2), keeley)
+# 
+# beta_cover <- summary(cover_model)$coefficients[2, 1]
+# beta_cover2 <- summary(cover_model)$coefficients[3, 1]
+# 
+# composite <- beta_cover * keeley$cover + beta_cover2 * (keeley$cover)^2
+# 
+# keeley$composite <- composite
+# 
+# keeley_psem <- psem(
+#   lm(firesev ~ cover, keeley),
+#   lm(rich ~ composite + firesev, keeley)
+# )
+# 
+# summary(keeley_psem, .progressBar = FALSE)
+
+```
+
+## An interesting route, could be the use of a latent variable property to model the way
+## soundscape variables are indicating diversity
+## For example, I have a number of metrics indicating some feature of the soundscape
+## such as: bioacoustic index, acoustic entropy, ACI, SPL
+
+>>>>>>> d69924ce5234437194dd03e3a9ca0fe3c6728deb

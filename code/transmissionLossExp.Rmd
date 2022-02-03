@@ -1,0 +1,151 @@
+<<<<<<< HEAD
+---
+title: "TransmissionLossExp"
+author: "Becca Van Hoeck"
+date: "12/13/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Load Packages and data
+
+```{r}
+
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+
+signals = read.csv("data/sound_exp/signalSPLdata.csv", header = TRUE)
+
+```
+
+## Tidy data
+
+```{r}
+
+# group by site, frequency, distance, then calc mean spl
+
+meanSPL = signals %>%
+  group_by(site, frequency, distance) %>%
+  summarize(meanSPL = mean(spl1,spl2,spl3,spl4,spl5,spl6,spl7,spl8,spl9,spl10))
+
+
+Tloss = meanSPL %>%
+  group_by(site,frequency) %>%
+  summarize(TL0 = meanSPL)
+
+
+```
+
+# Cheat with excel TL quick and dirty summary
+
+```{r}
+
+signals$signalF = signals$frequency
+
+# What do I use as the y? 
+# do I need to change to long form?
+#ggplot(data = signals, aes(x = distance))
+
+
+
+tLoss = as.data.frame(read.csv("data/sound_exp/signalTLdata.csv", header = TRUE))
+
+tLoss$site = factor(tLoss$site)
+tLoss$distance = factor(tLoss$distance)
+tLoss$frequency = factor(tLoss$frequency)
+STdistance = tLoss$distance
+tLoss$signalF = tLoss$frequency
+
+ggplot(data = tLoss, aes(x = STdistance, y = meanTL, color = site))+ theme_bw()+
+  geom_point()+
+  geom_smooth()+
+  facet_wrap(facets = signalF)
+
+
+distance
+
+```
+
+
+
+
+=======
+---
+title: "TransmissionLossExp"
+author: "Becca Van Hoeck"
+date: "12/13/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Load Packages and data
+
+```{r}
+
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+
+signals = read.csv("data/sound_exp/signalSPLdata.csv", header = TRUE)
+
+```
+
+## Tidy data
+
+```{r}
+
+# group by site, frequency, distance, then calc mean spl
+
+meanSPL = signals %>%
+  group_by(site, frequency, distance) %>%
+  summarize(meanSPL = mean(spl1,spl2,spl3,spl4,spl5,spl6,spl7,spl8,spl9,spl10))
+
+
+Tloss = meanSPL %>%
+  group_by(site,frequency) %>%
+  summarize(TL0 = meanSPL)
+
+
+```
+
+# Cheat with excel TL quick and dirty summary
+
+```{r}
+
+signals$signalF = signals$frequency
+
+# What do I use as the y? 
+# do I need to change to long form?
+#ggplot(data = signals, aes(x = distance))
+
+
+
+tLoss = as.data.frame(read.csv("data/sound_exp/signalTLdata.csv", header = TRUE))
+
+tLoss$site = factor(tLoss$site)
+tLoss$distance = factor(tLoss$distance)
+tLoss$frequency = factor(tLoss$frequency)
+STdistance = tLoss$distance
+tLoss$signalF = tLoss$frequency
+
+ggplot(data = tLoss, aes(x = STdistance, y = meanTL, color = site))+ theme_bw()+
+  geom_point()+
+  geom_smooth()+
+  facet_wrap(facets = signalF)
+
+
+distance
+
+```
+
+
+
+
+>>>>>>> d69924ce5234437194dd03e3a9ca0fe3c6728deb

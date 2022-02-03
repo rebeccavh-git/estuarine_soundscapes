@@ -1,0 +1,577 @@
+<<<<<<< HEAD
+---
+title: "Sound_hab_nmds"
+author: "Becca Van Hoeck"
+date: "10/6/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Load libraries
+
+```{r}
+library(vegan)
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+library(cluster)
+library(RColorBrewer)
+
+```
+
+## Vegan NMDS - pmHT site average
+
+```{r}
+Df_pmHT = read.csv("data/clean_data/Df_pmHT_noWater.csv", header = F)
+
+Df_pmHT = as.dist(Df_pmHT)
+Df_pmHT_metadata = read.csv("data/metadata/Df_pmHT_1_metadata.csv", header = T)
+
+nmds_1 = metaMDS(Df_pmHT, k=2, trymax = 20, autotransform = FALSE, plot = FALSE)
+
+nmdsScores = as.data.frame(scores(nmds_1))  
+nmdsScores = cbind(nmdsScores,Df_pmHT_metadata)
+nmdsScores$deploy = factor(nmdsScores$deploy)
+
+# habitat: 
+ggplot(aes(x = NMDS1, y = NMDS2, color = habitat), data = nmdsScores)+ theme_bw()+
+  geom_point(size = 3)+
+  geom_text(aes(label = site), hjust = 1.5)
+
+# Deploy alone: mostly buckshot, suggests there are deeper patterns than seasonal 
+ggplot(aes(x = NMDS1, y = NMDS2), data = nmdsScores)+ theme_bw()+
+  geom_point(size = 3, aes(color = deploy))
+
+# habitat and deploy
+ggplot(aes(x = NMDS1, y = NMDS2), data = nmdsScores)+ theme_bw()+
+  geom_point(size = 3, aes(color = deploy, shape = habitat))+
+  #geom_text(aes(label = site), hjust = 1.5)+ 
+  theme(panel.grid.minor = element_blank(), 
+        panel.grid.major = element_blank())+
+  geom_hline(yintercept = 0, color = "grey")+
+  geom_vline(xintercept = 0, color = "grey")+
+  xlim(-0.5, 0.5)+
+  ylim(-0.40, 0.40)
+
+```
+
+## Add Environmental Vector
+
+```{r}
+env_data = read.csv("data/clean_data/env_metrics.csv", header = TRUE)
+
+# loading all metrics - should clarify code after this
+ecometrics = read.csv("data/clean_data/ecometrics.csv")
+
+community = ecometrics[,c(27:45)]
+
+# Landscape metrics
+landscape_data = read.csv("data/clean_data/landscape_metrics.csv", header = TRUE)
+landscape_data = landscape_data %>%
+  mutate(habitat_total = seagrass_area+saltmarsh_area+oyster_area)
+landscape_data = landscape_data %>%
+  select(-contains('Sand'), -contains('channel'),-contains('mudflat'), -contains("land"),-contains("total_hab"))
+landscape_cor = cor(landscape_data[,c(3:18)])
+# checks correlation withing landscape data and keeps only non-correlated metrics
+landscape_filt = landscape_data %>%
+  select(seagrass_area, seagrass_perim.area.ratio, seagrass_shape.index, saltmarsh_area, saltmarsh_perim.area.ratio,
+         saltmarsh_shape.index, oyster_area, oyster_perim.area.ratio)
+
+env_data = cbind(env_data, landscape_filt)
+
+ # Nearest neighbor: 
+neighbor_data = read.csv("data/raw_data/nearest_neighbor_results.csv", header = TRUE)
+
+env_data$nn_Land = neighbor_data$NNratio
+env_data$dist2adj = neighbor_data$dist2adjPatch
+env_data$richness_land = neighbor_data$richness_landscape # -0.8 corr with dis2adj patch
+
+env_cor = cor(env_data[,c(4:34)], use = "pairwise.complete.obs")
+#write.csv(env_cor,"data/clean_data/nmds_env_cor.csv")
+
+# TO DO: Go through the correlation matrix and identify variables to remove.
+
+#without seagrass only metrics  -deploy_num.x,
+env_filt = env_data %>%
+  select(-index, -site, -bare, -evenness, -seagrass_comb, -shannonD_comb, -evenness_comb,
+         -totalcover, -avg_shoot_density, -avg_blade_length, -max_10, -max_25perc, -richness_land, -oyster_area)
+
+# need to assess normality and consider transformations
+# convert to z-scores?
+env_zscores = as.data.frame(sapply(env_filt, function(env_filt) (env_filt-mean(env_filt))/sd(env_filt)))
+
+
+#test with vegan envfit
+env_test= envfit(nmds_1, env_filt, perm = 999, na.rm = TRUE)
+#env_test= envfit(nmds_1, community, perm = 999, na.rm = TRUE) none significant
+
+#env_test = envfit(nmds_1 ~ halodule + zostera + ruppia + algae + oyster + saltmarsh + other + 
+#                     richness + shannonD + richness_comb, data = env_zscores, perm = 999)
+env_test
+envScores = as.data.frame(scores(env_test, "vectors"))
+
+# habitat and deploy
+ggplot(aes(x = NMDS1, y = NMDS2), data = nmdsScores)+ theme_bw()+
+  geom_point(size = 3, aes(color = habitat, shape = deploy))+
+  geom_text(aes(label = site), hjust = 1.5)+
+  geom_segment(data =envScores ,aes(x=0,xend=NMDS1,y=0,yend=NMDS2),
+               arrow = arrow(length = unit(0.5, "cm")),colour="black")+ 
+  geom_text(data=envScores,aes(x=NMDS1,y=NMDS2,label=rownames(envScores)),size=4)+
+  theme(panel.grid.minor = element_blank(), 
+        panel.grid.major = element_blank())+
+  geom_hline(yintercept = 0, color = "grey")+
+  geom_vline(xintercept = 0, color = "grey")
+
+# nmds with only significant env vectors
+envScoresSig = envScores[c(1,5,11),]
+#envScoresSig = envScores[c(1,4,5,10),]
+ggplot(aes(x = NMDS1, y = NMDS2), data = nmdsScores)+ theme_bw()+
+  geom_point(size = 3, aes(color = habitat, shape = deploy))+
+  geom_text(aes(label = site), hjust = 1.5)+
+  geom_segment(data =envScoresSig ,aes(x=0,xend=NMDS1,y=0,yend=NMDS2),
+               arrow = arrow(length = unit(0.5, "cm")),colour="black")+ 
+  geom_text(data=envScoresSig,aes(x=NMDS1,y=NMDS2,label=rownames(envScoresSig)),size=4)+
+  theme(panel.grid.minor = element_blank(), 
+        panel.grid.major = element_blank())+
+  geom_hline(yintercept = 0, color = "grey")+
+  geom_vline(xintercept = 0, color = "grey")
+
+# only halodule was significant with permanova
+# permanova_test = adonis(Df_pmHT ~ halodule + zostera + ruppia + algae + oyster + saltmarsh + other + 
+#                           richness + shannonD + richness_comb + seagrass_area + seagrass_perim.area.ratio +
+#                           seagrass_shape.index + saltmarsh_area + saltmarsh_perim.area.ratio + saltmarsh_shape.index
+#                         + oyster_perim.area.ratio + nn_Land + dist2adj, data = env_zscores, perm = 999) #, 
+#                         #stata = Df_pmHT_metadata$habitat)
+# permanova_test
+
+# Permdisp - evaluating differences between habitat types
+permdisp_test = betadisper(Df_pmHT, group = Df_pmHT_metadata$habitat)
+permdisp_test
+
+TukeyHSD(permdisp_test, conf.level = 0.95)
+
+```
+
+## Cluster
+
+```{r}
+sdf_agnes = agnes(Df_pmHT, diss = T, method = "ward")
+#plot(sdf_agnes)
+summary(sdf_agnes)
+
+# Decided on 4 groups with 1 outlier based on spectra inspection
+sdf_agnes_levels = cutree(sdf_agnes, k=5)
+nmdsScores$cluster = factor(sdf_agnes_levels)
+nmdsScores$cluster = case_when(nmdsScores$cluster == 1 ~ "A",
+                               nmdsScores$cluster == 5 ~ "B",
+                               nmdsScores$cluster == 2 ~ "C", 
+                               nmdsScores$cluster == 3 ~ "D", 
+                               nmdsScores$cluster == 4 ~ "E")
+nmdsScores$cluster = factor(nmdsScores$cluster, levels = c("A","B","C","D","E"))
+
+# Plot with clusters
+ggplot(aes(x = NMDS1, y = NMDS2), data = nmdsScores)+ theme_bw()+
+  geom_point(size = 3, aes(color = cluster, shape = habitat))+
+  stat_ellipse(aes(color = cluster),data = nmdsScores,size = 1,level = .95)+ #95% CI ellipse (assumed multivariate normal)
+  scale_color_manual(values = c("#762A83","#AF8DC3","#7FBF7B","#1B7837","#D9F0D3"))+ # change to manual
+  #geom_text(aes(label = site), hjust = 1.5)+
+  geom_segment(data = envScoresSig ,aes(x=0,xend=NMDS1,y=0,yend=NMDS2),
+               arrow = arrow(length = unit(0.5, "cm")),colour="black")+ 
+  geom_text(data=envScoresSig,aes(x=NMDS1,y=NMDS2,label=rownames(envScoresSig)),size=4)+
+  theme(panel.grid.minor = element_blank(), 
+        panel.grid.major = element_blank())+
+  geom_hline(yintercept = 0, color = "grey")+
+  geom_vline(xintercept = 0, color = "grey")+
+  labs(caption = "stress = 0.09")
+
+```
+
+## Cluster of environmental data
+
+```{r}
+# is this correct?
+env_nmds = metaMDS(env_data[,c(4:19)], distance = "bray" ,k=2, trymax = 20, autotransform = TRUE,
+                   plot = TRUE)
+
+
+sdf_agnes = agnes(Df_pmHT, diss = T)
+plot(sdf_agnes)
+summary(sdf_agnes)
+
+
+
+```
+
+## NMDS site average - within habitat variation
+- Seagrass: nothing immediately interesting at first glance. No real grouping. 
+            Investigate spectra to decide if it's worth pursuing further
+            - sites separated on positive NMDS 2 all have a lower halodule:zostera ratio - 1 is even zostera dominant
+- Creek: no convergence. Not enough data. 
+- Mudflat: didn't even try. 
+
+- Could group creek and mudflat together. Then it might have enough data
+    - only converged with k = 2, with 50 solution attempts.
+    - many points plotted directly on top of one another. Are they really that similar? 
+
+```{r}
+#Seagrass
+Df_pmHT_seagrass = read.csv("data/clean_data/Df_pmHT_1_square_seagrass.csv", header = F) 
+Df_pmHT_seagrass = as.dist(Df_pmHT_seagrass)
+Df_pmHT_metadata = read.csv("data/metadata/Df_pmHT_1_metadata.csv", header = T)
+
+seagrass_metadata = Df_pmHT_metadata[c(2,3,6,7,10,11,14,15,19,20,23,24),]
+seagrass_env = env_data[c(2,3,6,7,10,11,14,15,19,20,23,24),]
+seagrass_env_cor = cor(seagrass_env[,c(4:23)], use = "pairwise.complete.obs")
+#write.csv(seagrass_env_cor,"data/clean_data/nmds_env_cor_seagrass.csv")
+env_filt_seagrass = seagrass_env %>%
+  select(-index, -deploy_num.x, -site, -bare, -oyster, -saltmarsh, -evenness, -seagrass_comb,  -evenness_comb,
+         -shannonD_comb, -max_25perc)
+
+nmds_1_seagrass = metaMDS(Df_pmHT_seagrass, k=3, trymax = 20, autotransform = FALSE, plot = FALSE)
+nmdsScores_seagrass = as.data.frame(scores(nmds_1_seagrass))  
+nmdsScores_seagrass = cbind(nmdsScores_seagrass,seagrass_metadata)
+nmdsScores_seagrass$deploy = factor(nmdsScores_seagrass$deploy)
+
+env_test_seagrass= envfit(nmds_1_seagrass, env_filt_seagrass, perm = 999)
+envScores_seagrass = as.data.frame(scores(env_test_seagrass, "vectors"))
+
+ggplot(aes(x = NMDS1, y = NMDS2), data = nmdsScores_seagrass)+ theme_bw()+
+  geom_point(size = 3, aes(color = deploy))+
+  geom_text(aes(label = site), hjust = 1.5)+
+  #geom_segment(data =envScores_seagrass ,aes(x=0,xend=NMDS1,y=0,yend=NMDS2),
+  #             arrow = arrow(length = unit(0.5, "cm")),colour="black")+ 
+  #geom_text(data=envScores_seagrass,aes(x=NMDS1,y=NMDS2,label=rownames(envScores_seagrass)),size=4)+
+  theme(panel.grid.minor = element_blank(), 
+        panel.grid.major = element_blank())+
+  geom_hline(yintercept = 0, color = "grey")+
+  geom_vline(xintercept = 0, color = "grey")
+
+# Creek - no convergence - insufficient data
+# added mudflat to creek since they were all adjacent to saltmarsh
+Df_pmHT_creek = read.csv("data/clean_data/Df_pmHT_1_square_creek.csv", header = F) 
+Df_pmHT_creek = as.dist(Df_pmHT_creek)
+Df_pmHT_metadata = read.csv("data/metadata/Df_pmHT_1_metadata.csv", header = T)
+
+creek_metadata = Df_pmHT_metadata[c(1,4,5,8,9,12,13,16,17,18,21,22),]
+creek_env = env_data[c(1,4,5,8,9,12,13,16,17,18,21,22),]
+creek_env_cor = cor(creek_env[,c(4:23)], use = "pairwise.complete.obs")
+#write.csv(creek_env_cor,"data/clean_data/nmds_env_cor_creek_mudflat.csv")
+env_filt_creek = creek_env %>%
+  select(-index, -deploy_num.x, -site, -bare, -zostera, -ruppia, -algae, shannonD, -evenness, -evenness_comb,
+         -totalcover, -avg_shoot_density, -avg_blade_length, -max_10, -max_25perc)
+
+nmds_1_creek = metaMDS(Df_pmHT_creek, k=2, trymax = 50, autotransform = FALSE, plot = FALSE)
+nmdsScores_creek = as.data.frame(scores(nmds_1_creek))  
+nmdsScores_creek = cbind(nmdsScores_creek,creek_metadata)
+nmdsScores_creek$deploy = factor(nmdsScores_creek$deploy)
+
+env_test_creek= envfit(nmds_1_creek, env_filt_creek, perm = 999)
+envScores_creek = as.data.frame(scores(env_test_creek, "vectors"))
+
+ggplot(aes(x = NMDS1, y = NMDS2), data = nmdsScores_creek)+ theme_bw()+
+  geom_point(size = 3, aes(color = deploy, shape = habitat))+
+  geom_text(aes(label = site), hjust = 1.5)+
+  geom_segment(data =envScores_creek ,aes(x=0,xend=NMDS1,y=0,yend=NMDS2),
+               arrow = arrow(length = unit(0.5, "cm")),colour="black")+ 
+  geom_text(data=envScores_creek,aes(x=NMDS1,y=NMDS2,label=rownames(envScores_creek)),size=4)+
+  theme(panel.grid.minor = element_blank(), 
+        panel.grid.major = element_blank())+
+  geom_hline(yintercept = 0, color = "grey")+
+  geom_vline(xintercept = 0, color = "grey")
+
+```
+
+
+
+=======
+---
+title: "Sound_hab_nmds"
+author: "Becca Van Hoeck"
+date: "10/6/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Load libraries
+
+```{r}
+library(vegan)
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+library(cluster)
+library(RColorBrewer)
+
+```
+
+## Vegan NMDS - pmHT site average
+
+```{r}
+Df_pmHT = read.csv("data/clean_data/Df_pmHT_noWater.csv", header = F)
+
+Df_pmHT = as.dist(Df_pmHT)
+Df_pmHT_metadata = read.csv("data/metadata/Df_pmHT_1_metadata.csv", header = T)
+
+nmds_1 = metaMDS(Df_pmHT, k=2, trymax = 20, autotransform = FALSE, plot = FALSE)
+
+nmdsScores = as.data.frame(scores(nmds_1))  
+nmdsScores = cbind(nmdsScores,Df_pmHT_metadata)
+nmdsScores$deploy = factor(nmdsScores$deploy)
+
+# habitat: 
+ggplot(aes(x = NMDS1, y = NMDS2, color = habitat), data = nmdsScores)+ theme_bw()+
+  geom_point(size = 3)+
+  geom_text(aes(label = site), hjust = 1.5)
+
+# Deploy alone: mostly buckshot, suggests there are deeper patterns than seasonal 
+ggplot(aes(x = NMDS1, y = NMDS2), data = nmdsScores)+ theme_bw()+
+  geom_point(size = 3, aes(color = deploy))
+
+# habitat and deploy
+ggplot(aes(x = NMDS1, y = NMDS2), data = nmdsScores)+ theme_bw()+
+  geom_point(size = 3, aes(color = deploy, shape = habitat))+
+  #geom_text(aes(label = site), hjust = 1.5)+ 
+  theme(panel.grid.minor = element_blank(), 
+        panel.grid.major = element_blank())+
+  geom_hline(yintercept = 0, color = "grey")+
+  geom_vline(xintercept = 0, color = "grey")+
+  xlim(-0.5, 0.5)+
+  ylim(-0.40, 0.40)
+
+```
+
+## Add Environmental Vector
+
+```{r}
+env_data = read.csv("data/clean_data/env_metrics.csv", header = TRUE)
+
+# loading all metrics - should clarify code after this
+ecometrics = read.csv("data/clean_data/ecometrics.csv")
+
+community = ecometrics[,c(27:45)]
+
+# Landscape metrics
+landscape_data = read.csv("data/clean_data/landscape_metrics.csv", header = TRUE)
+landscape_data = landscape_data %>%
+  mutate(habitat_total = seagrass_area+saltmarsh_area+oyster_area)
+landscape_data = landscape_data %>%
+  select(-contains('Sand'), -contains('channel'),-contains('mudflat'), -contains("land"),-contains("total_hab"))
+landscape_cor = cor(landscape_data[,c(3:18)])
+# checks correlation withing landscape data and keeps only non-correlated metrics
+landscape_filt = landscape_data %>%
+  select(seagrass_area, seagrass_perim.area.ratio, seagrass_shape.index, saltmarsh_area, saltmarsh_perim.area.ratio,
+         saltmarsh_shape.index, oyster_area, oyster_perim.area.ratio)
+
+env_data = cbind(env_data, landscape_filt)
+
+ # Nearest neighbor: 
+neighbor_data = read.csv("data/raw_data/nearest_neighbor_results.csv", header = TRUE)
+
+env_data$nn_Land = neighbor_data$NNratio
+env_data$dist2adj = neighbor_data$dist2adjPatch
+env_data$richness_land = neighbor_data$richness_landscape # -0.8 corr with dis2adj patch
+
+env_cor = cor(env_data[,c(4:34)], use = "pairwise.complete.obs")
+#write.csv(env_cor,"data/clean_data/nmds_env_cor.csv")
+
+# TO DO: Go through the correlation matrix and identify variables to remove.
+
+#without seagrass only metrics  -deploy_num.x,
+env_filt = env_data %>%
+  select(-index, -site, -bare, -evenness, -seagrass_comb, -shannonD_comb, -evenness_comb,
+         -totalcover, -avg_shoot_density, -avg_blade_length, -max_10, -max_25perc, -richness_land, -oyster_area)
+
+# need to assess normality and consider transformations
+# convert to z-scores?
+env_zscores = as.data.frame(sapply(env_filt, function(env_filt) (env_filt-mean(env_filt))/sd(env_filt)))
+
+
+#test with vegan envfit
+env_test= envfit(nmds_1, env_filt, perm = 999, na.rm = TRUE)
+#env_test= envfit(nmds_1, community, perm = 999, na.rm = TRUE) none significant
+
+#env_test = envfit(nmds_1 ~ halodule + zostera + ruppia + algae + oyster + saltmarsh + other + 
+#                     richness + shannonD + richness_comb, data = env_zscores, perm = 999)
+env_test
+envScores = as.data.frame(scores(env_test, "vectors"))
+
+# habitat and deploy
+ggplot(aes(x = NMDS1, y = NMDS2), data = nmdsScores)+ theme_bw()+
+  geom_point(size = 3, aes(color = habitat, shape = deploy))+
+  geom_text(aes(label = site), hjust = 1.5)+
+  geom_segment(data =envScores ,aes(x=0,xend=NMDS1,y=0,yend=NMDS2),
+               arrow = arrow(length = unit(0.5, "cm")),colour="black")+ 
+  geom_text(data=envScores,aes(x=NMDS1,y=NMDS2,label=rownames(envScores)),size=4)+
+  theme(panel.grid.minor = element_blank(), 
+        panel.grid.major = element_blank())+
+  geom_hline(yintercept = 0, color = "grey")+
+  geom_vline(xintercept = 0, color = "grey")
+
+# nmds with only significant env vectors
+envScoresSig = envScores[c(1,5,11),]
+#envScoresSig = envScores[c(1,4,5,10),]
+ggplot(aes(x = NMDS1, y = NMDS2), data = nmdsScores)+ theme_bw()+
+  geom_point(size = 3, aes(color = habitat, shape = deploy))+
+  geom_text(aes(label = site), hjust = 1.5)+
+  geom_segment(data =envScoresSig ,aes(x=0,xend=NMDS1,y=0,yend=NMDS2),
+               arrow = arrow(length = unit(0.5, "cm")),colour="black")+ 
+  geom_text(data=envScoresSig,aes(x=NMDS1,y=NMDS2,label=rownames(envScoresSig)),size=4)+
+  theme(panel.grid.minor = element_blank(), 
+        panel.grid.major = element_blank())+
+  geom_hline(yintercept = 0, color = "grey")+
+  geom_vline(xintercept = 0, color = "grey")
+
+# only halodule was significant with permanova
+# permanova_test = adonis(Df_pmHT ~ halodule + zostera + ruppia + algae + oyster + saltmarsh + other + 
+#                           richness + shannonD + richness_comb + seagrass_area + seagrass_perim.area.ratio +
+#                           seagrass_shape.index + saltmarsh_area + saltmarsh_perim.area.ratio + saltmarsh_shape.index
+#                         + oyster_perim.area.ratio + nn_Land + dist2adj, data = env_zscores, perm = 999) #, 
+#                         #stata = Df_pmHT_metadata$habitat)
+# permanova_test
+
+# Permdisp - evaluating differences between habitat types
+permdisp_test = betadisper(Df_pmHT, group = Df_pmHT_metadata$habitat)
+permdisp_test
+
+TukeyHSD(permdisp_test, conf.level = 0.95)
+
+```
+
+## Cluster
+
+```{r}
+sdf_agnes = agnes(Df_pmHT, diss = T, method = "ward")
+#plot(sdf_agnes)
+summary(sdf_agnes)
+
+# Decided on 4 groups with 1 outlier based on spectra inspection
+sdf_agnes_levels = cutree(sdf_agnes, k=5)
+nmdsScores$cluster = factor(sdf_agnes_levels)
+nmdsScores$cluster = case_when(nmdsScores$cluster == 1 ~ "A",
+                               nmdsScores$cluster == 5 ~ "B",
+                               nmdsScores$cluster == 2 ~ "C", 
+                               nmdsScores$cluster == 3 ~ "D", 
+                               nmdsScores$cluster == 4 ~ "E")
+nmdsScores$cluster = factor(nmdsScores$cluster, levels = c("A","B","C","D","E"))
+
+# Plot with clusters
+ggplot(aes(x = NMDS1, y = NMDS2), data = nmdsScores)+ theme_bw()+
+  geom_point(size = 3, aes(color = cluster, shape = habitat))+
+  stat_ellipse(aes(color = cluster),data = nmdsScores,size = 1,level = .95)+ #95% CI ellipse (assumed multivariate normal)
+  scale_color_manual(values = c("#762A83","#AF8DC3","#7FBF7B","#1B7837","#D9F0D3"))+ # change to manual
+  #geom_text(aes(label = site), hjust = 1.5)+
+  geom_segment(data = envScoresSig ,aes(x=0,xend=NMDS1,y=0,yend=NMDS2),
+               arrow = arrow(length = unit(0.5, "cm")),colour="black")+ 
+  geom_text(data=envScoresSig,aes(x=NMDS1,y=NMDS2,label=rownames(envScoresSig)),size=4)+
+  theme(panel.grid.minor = element_blank(), 
+        panel.grid.major = element_blank())+
+  geom_hline(yintercept = 0, color = "grey")+
+  geom_vline(xintercept = 0, color = "grey")+
+  labs(caption = "stress = 0.09")
+
+```
+
+## Cluster of environmental data
+
+```{r}
+# is this correct?
+env_nmds = metaMDS(env_data[,c(4:19)], distance = "bray" ,k=2, trymax = 20, autotransform = TRUE,
+                   plot = TRUE)
+
+
+sdf_agnes = agnes(Df_pmHT, diss = T)
+plot(sdf_agnes)
+summary(sdf_agnes)
+
+
+
+```
+
+## NMDS site average - within habitat variation
+- Seagrass: nothing immediately interesting at first glance. No real grouping. 
+            Investigate spectra to decide if it's worth pursuing further
+            - sites separated on positive NMDS 2 all have a lower halodule:zostera ratio - 1 is even zostera dominant
+- Creek: no convergence. Not enough data. 
+- Mudflat: didn't even try. 
+
+- Could group creek and mudflat together. Then it might have enough data
+    - only converged with k = 2, with 50 solution attempts.
+    - many points plotted directly on top of one another. Are they really that similar? 
+
+```{r}
+#Seagrass
+Df_pmHT_seagrass = read.csv("data/clean_data/Df_pmHT_1_square_seagrass.csv", header = F) 
+Df_pmHT_seagrass = as.dist(Df_pmHT_seagrass)
+Df_pmHT_metadata = read.csv("data/metadata/Df_pmHT_1_metadata.csv", header = T)
+
+seagrass_metadata = Df_pmHT_metadata[c(2,3,6,7,10,11,14,15,19,20,23,24),]
+seagrass_env = env_data[c(2,3,6,7,10,11,14,15,19,20,23,24),]
+seagrass_env_cor = cor(seagrass_env[,c(4:23)], use = "pairwise.complete.obs")
+#write.csv(seagrass_env_cor,"data/clean_data/nmds_env_cor_seagrass.csv")
+env_filt_seagrass = seagrass_env %>%
+  select(-index, -deploy_num.x, -site, -bare, -oyster, -saltmarsh, -evenness, -seagrass_comb,  -evenness_comb,
+         -shannonD_comb, -max_25perc)
+
+nmds_1_seagrass = metaMDS(Df_pmHT_seagrass, k=3, trymax = 20, autotransform = FALSE, plot = FALSE)
+nmdsScores_seagrass = as.data.frame(scores(nmds_1_seagrass))  
+nmdsScores_seagrass = cbind(nmdsScores_seagrass,seagrass_metadata)
+nmdsScores_seagrass$deploy = factor(nmdsScores_seagrass$deploy)
+
+env_test_seagrass= envfit(nmds_1_seagrass, env_filt_seagrass, perm = 999)
+envScores_seagrass = as.data.frame(scores(env_test_seagrass, "vectors"))
+
+ggplot(aes(x = NMDS1, y = NMDS2), data = nmdsScores_seagrass)+ theme_bw()+
+  geom_point(size = 3, aes(color = deploy))+
+  geom_text(aes(label = site), hjust = 1.5)+
+  #geom_segment(data =envScores_seagrass ,aes(x=0,xend=NMDS1,y=0,yend=NMDS2),
+  #             arrow = arrow(length = unit(0.5, "cm")),colour="black")+ 
+  #geom_text(data=envScores_seagrass,aes(x=NMDS1,y=NMDS2,label=rownames(envScores_seagrass)),size=4)+
+  theme(panel.grid.minor = element_blank(), 
+        panel.grid.major = element_blank())+
+  geom_hline(yintercept = 0, color = "grey")+
+  geom_vline(xintercept = 0, color = "grey")
+
+# Creek - no convergence - insufficient data
+# added mudflat to creek since they were all adjacent to saltmarsh
+Df_pmHT_creek = read.csv("data/clean_data/Df_pmHT_1_square_creek.csv", header = F) 
+Df_pmHT_creek = as.dist(Df_pmHT_creek)
+Df_pmHT_metadata = read.csv("data/metadata/Df_pmHT_1_metadata.csv", header = T)
+
+creek_metadata = Df_pmHT_metadata[c(1,4,5,8,9,12,13,16,17,18,21,22),]
+creek_env = env_data[c(1,4,5,8,9,12,13,16,17,18,21,22),]
+creek_env_cor = cor(creek_env[,c(4:23)], use = "pairwise.complete.obs")
+#write.csv(creek_env_cor,"data/clean_data/nmds_env_cor_creek_mudflat.csv")
+env_filt_creek = creek_env %>%
+  select(-index, -deploy_num.x, -site, -bare, -zostera, -ruppia, -algae, shannonD, -evenness, -evenness_comb,
+         -totalcover, -avg_shoot_density, -avg_blade_length, -max_10, -max_25perc)
+
+nmds_1_creek = metaMDS(Df_pmHT_creek, k=2, trymax = 50, autotransform = FALSE, plot = FALSE)
+nmdsScores_creek = as.data.frame(scores(nmds_1_creek))  
+nmdsScores_creek = cbind(nmdsScores_creek,creek_metadata)
+nmdsScores_creek$deploy = factor(nmdsScores_creek$deploy)
+
+env_test_creek= envfit(nmds_1_creek, env_filt_creek, perm = 999)
+envScores_creek = as.data.frame(scores(env_test_creek, "vectors"))
+
+ggplot(aes(x = NMDS1, y = NMDS2), data = nmdsScores_creek)+ theme_bw()+
+  geom_point(size = 3, aes(color = deploy, shape = habitat))+
+  geom_text(aes(label = site), hjust = 1.5)+
+  geom_segment(data =envScores_creek ,aes(x=0,xend=NMDS1,y=0,yend=NMDS2),
+               arrow = arrow(length = unit(0.5, "cm")),colour="black")+ 
+  geom_text(data=envScores_creek,aes(x=NMDS1,y=NMDS2,label=rownames(envScores_creek)),size=4)+
+  theme(panel.grid.minor = element_blank(), 
+        panel.grid.major = element_blank())+
+  geom_hline(yintercept = 0, color = "grey")+
+  geom_vline(xintercept = 0, color = "grey")
+
+```
+
+
+
+>>>>>>> d69924ce5234437194dd03e3a9ca0fe3c6728deb

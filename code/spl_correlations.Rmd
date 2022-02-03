@@ -1,0 +1,977 @@
+<<<<<<< HEAD
+---
+title: "Sound_hab_spl_correlations"
+author: "Becca Van Hoeck"
+date: "3/29/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Load libraries and data
+```{r}
+library(ggplot2)
+library(GGally)
+library(dplyr)
+library(tidyr)
+#install.packages("readr")
+
+ecometrics = read.csv("data/clean_data/ecometrics.csv")
+#ACI = read.csv("data/clean_data/avg_ACI1024.csv")
+#H_entropy = read.csv("data/clean_data/avg_H1024.csv")
+BI = read.csv("data/clean_data/bioacousticIndex.csv")
+# need to correct averaging method for these average SPLs in smaller low f bins
+#splAvgLowBins = read.csv("data/clean_data/splAvgLowBins.csv")
+
+#ecometrics$ACI = ACI$avg_ACI1024
+#ecometrics$entropy= H_entropy$avg_H1024
+ecometrics$BI_low = BI$BI_low
+ecometrics$BI_high = BI$BI_high
+#ecometrics$splLlow = splAvgLowBins$splAvgLlow
+#ecometrics$splMlow = splAvgLowBins$splAvgMlow
+
+# make deployment a factor to include as a random effect
+ecometrics$deploy = factor(ecometrics$deploy_num.x)
+
+# correct habitat assignment for Seagrass C
+ecometrics$habitat[ecometrics$site_code == "SC"] = "seagrass"
+
+landscapeMetrics = read.csv("data/clean_data/landscape_metrics.csv", header = TRUE)
+landscapeMetrics = landscapeMetrics %>%
+  mutate(habitat_total = seagrass_area+saltmarsh_area+oyster_area)
+ecometrics = left_join(ecometrics, landscapeMetrics, by = c("site_code" = "site"))
+
+annMetrics = read.csv("data/raw_data/nearest_neighbor_results.csv", header = TRUE)
+ecometrics$nnratio = annMetrics$NNratio
+ecometrics$distadj = annMetrics$dist2adjPatch
+ecometrics$land_richness = annMetrics$richness_landscape
+
+
+```
+
+## Explore correlations:
+1. Examine correlation within habitat/community metrics and remove redundant variables (corr > 0.7)
+2. Explore correlation between habitat/community metrics and Sound Pressure Level
+
+Start with habitat then community to reduce the number of correlations viewing at a single time
+```{r}
+ecometrics_1 = ecometrics[,c(4:24,27:36,38:65,68:107)]
+ecometrics_1 = as.data.frame(sapply(ecometrics_1, as.numeric))
+metricClass = lapply(ecometrics_1, class)
+
+MetricCorrAll = cor(ecometrics_1, use = "complete.obs")
+write.csv(MetricCorrAll, "data/raw_data/metricCorrAll.csv")
+
+
+# HABITAT
+# sound_hab = ecometrics %>%
+#   select(site, habitat, totalcover, seagrass_comb, oyster, saltmarsh, richness, evenness,
+#          avg_shoot_density, avg_blade_length,
+#         avg_spl_low, splLlow, splMlow, avg_spl_high) #, #BI_low, BI_high)
+
+sound_hab = ecometrics %>%
+  select(site, habitat, totalcover, oyster, saltmarsh, evenness,
+         avg_shoot_density, avg_blade_length,
+        avg_spl_low, avg_spl_high, BI_low, BI_high)
+
+ggpairs(sound_hab[,3:12])
+#ggpairs(sound_hab[,3:13]) # added ACI & H
+#ggpairs(sound_hab, columns = c(3,4,5,6,7,8,9,10,11), 
+#        mapping = aes(color = as.factor(sound_hab$habitat)))
+
+# COMMUNITY
+sound_com = ecometrics %>%
+  select(site, habitat, depth_m_avg, temp_avg, sal_avg, total_abund_sum, comm_richness_sum, comm_evenness_sum, 
+         piscivore, avg_spl_low, avg_spl_high, BI_low, BI_high)
+
+#sound_com$log_abund = log10(sound_com$total_abund_sum)
+#plot(sound_com$total_abund_sum)
+
+ggpairs(sound_com[,3:13])
+
+## only piscivore was interesting
+# sound_trophic = ecometrics %>%
+#   select(site, habitat, carnivore, piscivore, planktivore, 
+#          avg_spl_low, avg_spl_high)
+# 
+# ggpairs(sound_trophic[,3:7])
+
+```
+
+## Landscape metrics
+
+```{r}
+
+sound_land = ecometrics %>%
+  select(avg_spl_low, avg_spl_high)#, BI_low, BI_high
+sound_land = ecometrics[,c(60:104)]
+sound_land = sound_land[,c(1,4,9:45)]
+
+sound_land_area = sound_land %>%
+  select(avg_spl_low, avg_spl_high, seagrass_area, saltmarsh_area, mudflat_area, oyster_area)
+
+ggpairs(sound_land_area[,])
+# saltmarsh area and oyster area are highly correlated - which one to choose??
+
+sound_land_area = sound_land_area %>%
+  select(-saltmarsh_area)
+ggpairs(sound_land_area[,])
+
+# low frequency: saltmarsh area (land), 
+# high frequency: saltmarsh area (land)
+
+#ggpairs(sound_land[,c(1:10)])
+#ggpairs(sound_land[,c(1,2,11:20)])
+#ggpairs(sound_land[,c(1,2,21:30)])
+#ggpairs(sound_land[,c(1,2,31:39)])
+
+
+# Still need to check redundancy and remove
+# lots of correlations with sand & channel - need to consider
+
+# Low Frequency 
+# neg cor: seagrass core area
+# pos cor: saltmarsh area, saltmarsh core area, saltmarsh perimeter, oyster area, oyster core area, oyster perimeter, oyster perim/area ratio, oyster shape, habitat total
+
+# High Frequency
+# neg cor: 
+# pos cor: seagrass perimeter, seagrass shape index, saltmarsh area, saltmarsh core, oyster area, oyster core, oyster perimeter, oyster shape, habitat total
+
+
+```
+
+## Correlations between sound and each metric category
+CERF Presentation prep
+
+```{r}
+
+## SPL Low & Habitat
+# oyster, seagrass combined, richness, depth, total abund, comm richness, 
+# test dis adj patch/nnratio
+
+ggplot(aes(x = oyster, y = avg_spl_low),data = ecometrics)+ theme_bw()+
+  geom_point()+
+  geom_smooth(method = "lm", formula = 'y ~x', se = FALSE, color = "black")+
+  xlab("Oyster cover")+
+  ylab("Average SPL (dB re 1 uPa)")+
+  theme(axis.title = element_text(size = 20), 
+        axis.text = element_text(size = 16))
+cor(ecometrics$oyster, ecometrics$avg_spl_low, method = "pearson")
+
+  
+ggplot(aes(x = seagrass_comb, y = avg_spl_low),data = ecometrics)+ theme_bw()+
+  geom_point()+
+  geom_smooth(method = "lm", formula = 'y ~x', se = FALSE, color = "black")+
+  xlab("Seagrass cover")+
+  ylab("Average SPL (dB re 1 uPa)")+
+  theme(axis.title = element_text(size = 20), 
+        axis.text = element_text(size = 16))
+cor(ecometrics$seagrass_comb, ecometrics$avg_spl_low, method = "pearson")
+
+
+# I think that linear is a terrible fit for this data, possibly don't include
+# check why this was not included in committee meeting?
+# ggplot(aes(x = richness, y = avg_spl_low),data = ecometrics)+ theme_bw()+
+#   geom_point()+
+#   geom_smooth(method = "lm", formula = 'y ~x', se = FALSE, color = "black")+
+#   xlab("Habitat richness")+
+#   ylab("Average SPL (dB re 1 uPa)")+
+  theme(axis.title = element_text(size = 20), 
+        axis.text = element_text(size = 16))
+# cor(ecometrics$richness, ecometrics$avg_spl_low, method = "pearson")
+
+
+ggplot(aes(x = depth_m_avg, y = avg_spl_low),data = ecometrics)+ theme_bw()+
+  geom_point()+
+  geom_smooth(method = "lm", formula = 'y ~x', se = FALSE, color = "black")+
+  xlab("Depth (m)")+
+  ylab("Average SPL (dB re 1 uPa)")+
+  theme(axis.title = element_text(size = 20), 
+        axis.text = element_text(size = 16))
+# cor(ecometrics$depth_m_avg, ecometrics$avg_spl_low, method = "pearson")
+# depth spl low cor = 0.428
+
+ggplot(aes(x = comm_richness_sum, y = avg_spl_low),data = ecometrics)+ theme_bw()+
+  geom_point()+
+  geom_smooth(method = "lm", formula = 'y ~x', se = FALSE, color = "black")+
+  xlab("Community Richness")+
+  ylab("Average SPL (dB re 1 uPa)")+
+  theme(axis.title = element_text(size = 20), 
+        axis.text = element_text(size = 16))
+cor(ecometrics$comm_richness_sum, ecometrics$avg_spl_low, method = "pearson")
+cor(ecometrics$total_abund_sum, ecometrics$comm_richness_sum)
+
+ggplot(aes(x = oyster_area, y = avg_spl_low),data = ecometrics)+ theme_bw()+
+  geom_point()+
+  geom_smooth(method = "lm", formula = 'y ~x', se = FALSE, color = "black")+
+  xlab(expression(Landscape-scale~oyster~area~(m^2)))+
+  ylab("Average SPL (dB re 1 uPa)")+
+  theme(axis.title = element_text(size = 20), 
+        axis.text = element_text(size = 16))
+cor(ecometrics$oyster_area, ecometrics$avg_spl_low, method = "pearson")
+
+
+# # try removing outlier of 2000m
+# ggplot(aes(x = distadj, y = avg_spl_low),data = ecometrics)+ theme_bw()+
+#   geom_point()+
+#   geom_smooth(method = "lm", formula = 'y ~x', se = FALSE, color = "black")+
+#   xlab("Distance to nearest adjacent patch")+
+#   ylab("Average SPL (dB re 1 uPa)")+
+  # theme(axis.title = element_text(size = 20), 
+  #       axis.text = element_text(size = 16))
+# cor(ecometrics$distadj, ecometrics$avg_spl_low, method = "pearson")
+
+
+
+## SPL High & Habitat
+# total cover, oyster, evenness, blade length, depth, temp, salinity, comm evenness, piscivore
+# check total abund sum, check landscape metrics
+
+ggplot(aes(x = totalcover, y = avg_spl_high),data = ecometrics)+ theme_bw()+
+  geom_point()+
+  geom_smooth(method = "lm", formula = 'y ~x', se = FALSE, color = "black")+
+  xlab("Total habitat cover")+
+  ylab("Average SPL (dB re 1 uPa)")+
+  theme(axis.title = element_text(size = 20), 
+        axis.text = element_text(size = 16))
+cor(ecometrics$totalcover, ecometrics$avg_spl_high, method = "pearson")
+
+
+ggplot(aes(x = oyster, y = avg_spl_high),data = ecometrics)+ theme_bw()+
+  geom_point()+
+  geom_smooth(method = "lm", formula = 'y ~x', se = FALSE, color = "black")+
+  xlab("Oyster cover")+
+  ylab("Average SPL (dB re 1 uPa)")+
+  theme(axis.title = element_text(size = 20), 
+        axis.text = element_text(size = 16))
+cor(ecometrics$oyster, ecometrics$avg_spl_high, method = "pearson")
+
+ggplot(aes(x = evenness, y = avg_spl_high),data = ecometrics)+ theme_bw()+
+  geom_point()+
+  geom_smooth(method = "lm", formula = 'y ~x', se = FALSE, color = "black")+
+  xlab("Habitat evenness")+
+  ylab("Average SPL (dB re 1 uPa)")+
+  theme(axis.title = element_text(size = 20), 
+        axis.text = element_text(size = 16))
+cor(ecometrics$evenness, ecometrics$avg_spl_high, method = "pearson")
+
+# removed NAs
+ggplot(aes(x = avg_blade_length, y = avg_spl_high),data = ecometrics)+ theme_bw()+
+  geom_point()+
+  geom_smooth(method = "lm", formula = 'y ~x', se = FALSE, color = "black")+
+  xlab("Seagrass canopy height (cm)")+
+  ylab("Average SPL (dB re 1 uPa)")+
+  theme(axis.title = element_text(size = 20), 
+        axis.text = element_text(size = 16))
+cor(ecometrics$avg_blade_length, ecometrics$avg_spl_high, method = "pearson")
+# seagrass blade length and SPL high cor = 0.779
+
+ggplot(aes(x = depth_m_avg, y = avg_spl_high),data = ecometrics)+ theme_bw()+
+  geom_point()+
+  geom_smooth(method = "lm", formula = 'y ~x', se = FALSE, color = "black")+
+  xlab("Depth (m)")+
+  ylab("Average SPL (dB re 1 uPa)")+
+  theme(axis.title = element_text(size = 20), 
+        axis.text = element_text(size = 16))
+cor(ecometrics$depth_m_avg, ecometrics$avg_spl_high, method = "pearson")
+# depth spl high cor = 0.445
+
+ggplot(aes(x = sal_avg, y = avg_spl_high),data = ecometrics)+ theme_bw()+
+  geom_point()+
+  geom_smooth(method = "lm", formula = 'y ~x', se = FALSE, color = "black")+
+  xlab("Salinity (ppt)")+
+  ylab("Average SPL (dB re 1 uPa)")+
+  theme(axis.title = element_text(size = 20), 
+        axis.text = element_text(size = 16))
+# cor(ecometrics$sal_avg, ecometrics$avg_spl_high, method = "pearson")
+# sal spl high cor = -0.468
+
+# can I interpret piscivore
+ggplot(aes(x = piscivore, y = avg_spl_high),data = ecometrics)+ theme_bw()+
+  geom_point()+
+  geom_smooth(method = "lm", formula = 'y ~x', se = FALSE, color = "black")+
+  xlab("Piscivore abundance")+
+  ylab("Average SPL (dB re 1 uPa)")+
+  theme(axis.title = element_text(size = 20), 
+        axis.text = element_text(size = 16))
+cor(ecometrics$piscivore, ecometrics$avg_spl_high, method = "pearson")
+
+ggplot(aes(x = saltmarsh_area, y = avg_spl_high),data = ecometrics)+ theme_bw()+
+  geom_point(color = "black")+
+  geom_smooth(method = "lm", formula = 'y ~x', se = FALSE, color = "black")+
+  xlab(expression(Landscape-scale~oyster~area~(m^2)))+
+  ylab("Average SPL (dB re 1 uPa)")+
+  theme(axis.title = element_text(size = 20), 
+        axis.text = element_text(size = 16),
+        legend.position = "none")
+cor(ecometrics$oyster_area, ecometrics$avg_spl_high, method = "pearson")
+
+```
+
+
+
+
+
+
+
+
+
+
+
+### END HERER FOR NOW!
+
+## Build model to explore variation in SPL
+
+1. Using predictor variables that crossed a 0.3 correlation threshold, examine simple linear model with all candidate predictors
+2. Evaluate model fit and evidence to retain or drop each predictor until a final model is reached
+
+** Need to consider whether a mixed-effects model structure is more appropriate - random effect of deployment, site? should habitat type be a fixed or random effect?, should any interactions be included?**
+
+Questions: 
+1. Do I need to standardize or transform predictors?
+2. How to evaluate if lm is sufficient, or should include mixed effects?
+3. How to incorporate the variable effects of habitat? Can I exclude mudflats?
+
+```{r}
+#library(nlme)
+
+# HIGH FREQUENCY - 
+#didn't include avg_blade_length even though strong correlation Possibly explore seagrass alone
+
+highMod1 = lm(avg_spl_high ~ totalcover + oyster + evenness + depth_m_avg + 
+                temp_avg + sal_avg + comm_evenness_sum + piscivore + habitat, data = ecometrics)
+
+
+#re-level habitat to mudflat as base case: 
+spl ~ creek + creek_cover + seagrass + seagrasscover
+
+# recommendation: 
+# build ecologicaly reasonable models 
+# possibility incorporate "biotic effects", "env effects" or not... 
+# then compare or average the models
+
+## this doesn't work due to different sizes - missing data
+#ecometrics$highmodpredict = predict(highMod2)
+
+# Selected highMod2 due to lowest ACI, but the conf intervals for many of the effects overlap with zero
+# doesn't this suggest no effect of those variables?
+confint(highMod2)
+
+# inspect residuals
+residplot <- function(model){
+  ggplot(model,aes(x=.fitted,y=.resid))+ 
+    geom_point()+
+    labs(x="Fitted values",y="Residuals")
+  }
+# inspect quantiles 
+qqplot <- function(model){
+  q1 <- ggplot(model,aes(sample=.stdresid))
+  q1+geom_point(stat="qq")+geom_abline(slope=1,intercept=0)+
+    labs(x="Theoretical Quantiles",y="Standardized residuals")
+}
+
+residplot(highMod2)
+qqplot(highMod2)
+confint(highMod2)
+
+# LOW FREQUENCY 
+#should I include interaction between habitat and total cover?
+
+lowMod1 = lm(avg_spl_low ~ oyster + depth_m_avg + total_abund_sum + comm_richness_sum +
+                 comm_evenness_sum + habitat, data = ecometrics)
+summary(lowMod1)
+drop1(lowMod1)
+
+lowMod2 = lm(avg_spl_low ~ oyster + depth_m_avg + 
+                 comm_evenness_sum, data = ecometrics)
+summary(lowMod2)
+drop1(lowMod2)
+
+AIC(lowMod1, lowMod2)
+
+# Selected lowMod2 for trial, but really not distinguishable by AIC
+confint(lowMod2)
+
+residplot(lowMod2)
+qqplot(lowMod2)
+
+```
+
+## Variation within habitat type
+
+```{r}
+# Seagrass
+sgMetrics = ecometrics %>%
+  filter(habitat == "seagrass")
+
+sound_seagrass = sgMetrics %>%
+  select(site, habitat, totalcover, seagrass_comb, oyster, saltmarsh, richness, evenness,
+         avg_shoot_density, avg_blade_length,
+        avg_spl_low, avg_spl_high, BI_low, BI_high)
+
+ggpairs(sound_seagrass[,3:14])
+
+# # Creek
+# creekMetrics = ecometrics %>%
+#   filter(habitat == "creek")
+# 
+# sound_creek = creekMetrics %>%
+#   select(site, habitat, totalcover, seagrass_comb, oyster, saltmarsh, richness, evenness,
+#          avg_shoot_density, avg_blade_length,
+#         avg_spl_low, avg_spl_high, BI_low, BI_high)
+# 
+# ggpairs(sound_creek,3:14)
+
+
+
+```
+
+## Plots exploring pairwise correlation and variation among habitat types
+
+```{r}
+
+# add habitat label and filter to only seagrass
+
+#Benthic metrics
+ggplot(aes(x = richness, y = avg_spl_low, color = habitat), data = ecometrics)+
+  geom_point()
+
+ggplot(aes(x = richness_comb, y = avg_spl_low, color = habitat), data = ecometrics)+
+  geom_point()
+
+ggplot(aes(x = evenness , y = avg_spl_low, color = habitat), data = ecometrics)+
+  geom_point()
+
+ggplot(aes(x = totalcover, y = avg_spl_low, color = habitat), data = ecometrics)+ theme_bw()+
+  geom_point(size = 3)+
+  geom_smooth(method = "lm", se = FALSE)+
+  scale_color_discrete(name = "Habitat type")+
+  ylab("Average sound pressure level (db re 1 uPa")+ 
+  xlab("Average percent cover")+
+  theme(axis.text = element_text(size = 16), 
+        axis.title = element_text(size = 18), 
+        legend.title = element_text(size = 18), 
+        legend.text = element_text(size = 16))
+
+#Habitat Metrics
+ggplot(aes(x = seagrass_comb, y = avg_spl_low, color = habitat), data = ecometrics)+
+  geom_point()
+
+ggplot(aes(x = saltmarsh, y = avg_spl_low, color = habitat), data = ecometrics)+
+  geom_point()
+
+ggplot(aes(x = saltmarsh, y = avg_spl_high, color = habitat), data = ecometrics)+
+  geom_point()
+
+ggplot(aes(x = oyster, y = avg_spl_high, color = habitat), data = ecometrics)+
+  geom_point()
+
+ggplot(aes(x = oyster, y = avg_spl_low, color = habitat), data = ecometrics)+
+  geom_point()
+
+# Community metrics
+ggplot(aes(x = total_abund_sum, y = avg_spl_low, color = habitat), data = ecometrics)+
+  geom_point()
+
+ggplot(aes(x = comm_evenness_sum, y = avg_spl_low, color = habitat), data = ecometrics)+
+  geom_point()
+
+ggplot(aes(x = comm_richness_sum, y = avg_spl_low, color = habitat), data = ecometrics)+
+  geom_point()
+
+ggplot(aes(x = X1_Depth_m, y = avg_spl_low, color = habitat), data = ecometrics)+
+  geom_point()
+
+
+```
+=======
+---
+title: "Sound_hab_spl_correlations"
+author: "Becca Van Hoeck"
+date: "3/29/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Load libraries and data
+```{r}
+library(ggplot2)
+library(GGally)
+library(dplyr)
+library(tidyr)
+#install.packages("readr")
+
+ecometrics = read.csv("data/clean_data/ecometrics.csv")
+#ACI = read.csv("data/clean_data/avg_ACI1024.csv")
+#H_entropy = read.csv("data/clean_data/avg_H1024.csv")
+BI = read.csv("data/clean_data/bioacousticIndex.csv")
+# need to correct averaging method for these average SPLs in smaller low f bins
+#splAvgLowBins = read.csv("data/clean_data/splAvgLowBins.csv")
+
+#ecometrics$ACI = ACI$avg_ACI1024
+#ecometrics$entropy= H_entropy$avg_H1024
+ecometrics$BI_low = BI$BI_low
+ecometrics$BI_high = BI$BI_high
+#ecometrics$splLlow = splAvgLowBins$splAvgLlow
+#ecometrics$splMlow = splAvgLowBins$splAvgMlow
+
+# make deployment a factor to include as a random effect
+ecometrics$deploy = factor(ecometrics$deploy_num.x)
+
+# correct habitat assignment for Seagrass C
+ecometrics$habitat[ecometrics$site_code == "SC"] = "seagrass"
+
+landscapeMetrics = read.csv("data/clean_data/landscape_metrics.csv", header = TRUE)
+landscapeMetrics = landscapeMetrics %>%
+  mutate(habitat_total = seagrass_area+saltmarsh_area+oyster_area)
+ecometrics = left_join(ecometrics, landscapeMetrics, by = c("site_code" = "site"))
+
+annMetrics = read.csv("data/raw_data/nearest_neighbor_results.csv", header = TRUE)
+ecometrics$nnratio = annMetrics$NNratio
+ecometrics$distadj = annMetrics$dist2adjPatch
+ecometrics$land_richness = annMetrics$richness_landscape
+
+
+```
+
+## Explore correlations:
+1. Examine correlation within habitat/community metrics and remove redundant variables (corr > 0.7)
+2. Explore correlation between habitat/community metrics and Sound Pressure Level
+
+Start with habitat then community to reduce the number of correlations viewing at a single time
+```{r}
+ecometrics_1 = ecometrics[,c(4:24,27:36,38:65,68:107)]
+ecometrics_1 = as.data.frame(sapply(ecometrics_1, as.numeric))
+metricClass = lapply(ecometrics_1, class)
+
+MetricCorrAll = cor(ecometrics_1, use = "complete.obs")
+write.csv(MetricCorrAll, "data/raw_data/metricCorrAll.csv")
+
+
+# HABITAT
+# sound_hab = ecometrics %>%
+#   select(site, habitat, totalcover, seagrass_comb, oyster, saltmarsh, richness, evenness,
+#          avg_shoot_density, avg_blade_length,
+#         avg_spl_low, splLlow, splMlow, avg_spl_high) #, #BI_low, BI_high)
+
+sound_hab = ecometrics %>%
+  select(site, habitat, totalcover, oyster, saltmarsh, evenness,
+         avg_shoot_density, avg_blade_length,
+        avg_spl_low, avg_spl_high, BI_low, BI_high)
+
+ggpairs(sound_hab[,3:12])
+#ggpairs(sound_hab[,3:13]) # added ACI & H
+#ggpairs(sound_hab, columns = c(3,4,5,6,7,8,9,10,11), 
+#        mapping = aes(color = as.factor(sound_hab$habitat)))
+
+# COMMUNITY
+sound_com = ecometrics %>%
+  select(site, habitat, depth_m_avg, temp_avg, sal_avg, total_abund_sum, comm_richness_sum, comm_evenness_sum, 
+         piscivore, avg_spl_low, avg_spl_high, BI_low, BI_high)
+
+#sound_com$log_abund = log10(sound_com$total_abund_sum)
+#plot(sound_com$total_abund_sum)
+
+ggpairs(sound_com[,3:13])
+
+## only piscivore was interesting
+# sound_trophic = ecometrics %>%
+#   select(site, habitat, carnivore, piscivore, planktivore, 
+#          avg_spl_low, avg_spl_high)
+# 
+# ggpairs(sound_trophic[,3:7])
+
+```
+
+## Landscape metrics
+
+```{r}
+
+sound_land = ecometrics %>%
+  select(avg_spl_low, avg_spl_high)#, BI_low, BI_high
+sound_land = ecometrics[,c(60:104)]
+sound_land = sound_land[,c(1,4,9:45)]
+
+sound_land_area = sound_land %>%
+  select(avg_spl_low, avg_spl_high, seagrass_area, saltmarsh_area, mudflat_area, oyster_area)
+
+ggpairs(sound_land_area[,])
+# saltmarsh area and oyster area are highly correlated - which one to choose??
+
+sound_land_area = sound_land_area %>%
+  select(-saltmarsh_area)
+ggpairs(sound_land_area[,])
+
+# low frequency: saltmarsh area (land), 
+# high frequency: saltmarsh area (land)
+
+#ggpairs(sound_land[,c(1:10)])
+#ggpairs(sound_land[,c(1,2,11:20)])
+#ggpairs(sound_land[,c(1,2,21:30)])
+#ggpairs(sound_land[,c(1,2,31:39)])
+
+
+# Still need to check redundancy and remove
+# lots of correlations with sand & channel - need to consider
+
+# Low Frequency 
+# neg cor: seagrass core area
+# pos cor: saltmarsh area, saltmarsh core area, saltmarsh perimeter, oyster area, oyster core area, oyster perimeter, oyster perim/area ratio, oyster shape, habitat total
+
+# High Frequency
+# neg cor: 
+# pos cor: seagrass perimeter, seagrass shape index, saltmarsh area, saltmarsh core, oyster area, oyster core, oyster perimeter, oyster shape, habitat total
+
+
+```
+
+## Correlations between sound and each metric category
+CERF Presentation prep
+
+```{r}
+
+## SPL Low & Habitat
+# oyster, seagrass combined, richness, depth, total abund, comm richness, 
+# test dis adj patch/nnratio
+
+ggplot(aes(x = oyster, y = avg_spl_low),data = ecometrics)+ theme_bw()+
+  geom_point()+
+  geom_smooth(method = "lm", formula = 'y ~x', se = FALSE, color = "black")+
+  xlab("Oyster cover")+
+  ylab("Average SPL (dB re 1 uPa)")+
+  theme(axis.title = element_text(size = 20), 
+        axis.text = element_text(size = 16))
+cor(ecometrics$oyster, ecometrics$avg_spl_low, method = "pearson")
+
+  
+ggplot(aes(x = seagrass_comb, y = avg_spl_low),data = ecometrics)+ theme_bw()+
+  geom_point()+
+  geom_smooth(method = "lm", formula = 'y ~x', se = FALSE, color = "black")+
+  xlab("Seagrass cover")+
+  ylab("Average SPL (dB re 1 uPa)")+
+  theme(axis.title = element_text(size = 20), 
+        axis.text = element_text(size = 16))
+cor(ecometrics$seagrass_comb, ecometrics$avg_spl_low, method = "pearson")
+
+
+# I think that linear is a terrible fit for this data, possibly don't include
+# check why this was not included in committee meeting?
+# ggplot(aes(x = richness, y = avg_spl_low),data = ecometrics)+ theme_bw()+
+#   geom_point()+
+#   geom_smooth(method = "lm", formula = 'y ~x', se = FALSE, color = "black")+
+#   xlab("Habitat richness")+
+#   ylab("Average SPL (dB re 1 uPa)")+
+  theme(axis.title = element_text(size = 20), 
+        axis.text = element_text(size = 16))
+# cor(ecometrics$richness, ecometrics$avg_spl_low, method = "pearson")
+
+
+ggplot(aes(x = depth_m_avg, y = avg_spl_low),data = ecometrics)+ theme_bw()+
+  geom_point()+
+  geom_smooth(method = "lm", formula = 'y ~x', se = FALSE, color = "black")+
+  xlab("Depth (m)")+
+  ylab("Average SPL (dB re 1 uPa)")+
+  theme(axis.title = element_text(size = 20), 
+        axis.text = element_text(size = 16))
+# cor(ecometrics$depth_m_avg, ecometrics$avg_spl_low, method = "pearson")
+# depth spl low cor = 0.428
+
+ggplot(aes(x = comm_richness_sum, y = avg_spl_low),data = ecometrics)+ theme_bw()+
+  geom_point()+
+  geom_smooth(method = "lm", formula = 'y ~x', se = FALSE, color = "black")+
+  xlab("Community Richness")+
+  ylab("Average SPL (dB re 1 uPa)")+
+  theme(axis.title = element_text(size = 20), 
+        axis.text = element_text(size = 16))
+cor(ecometrics$comm_richness_sum, ecometrics$avg_spl_low, method = "pearson")
+cor(ecometrics$total_abund_sum, ecometrics$comm_richness_sum)
+
+ggplot(aes(x = oyster_area, y = avg_spl_low),data = ecometrics)+ theme_bw()+
+  geom_point()+
+  geom_smooth(method = "lm", formula = 'y ~x', se = FALSE, color = "black")+
+  xlab(expression(Landscape-scale~oyster~area~(m^2)))+
+  ylab("Average SPL (dB re 1 uPa)")+
+  theme(axis.title = element_text(size = 20), 
+        axis.text = element_text(size = 16))
+cor(ecometrics$oyster_area, ecometrics$avg_spl_low, method = "pearson")
+
+
+# # try removing outlier of 2000m
+# ggplot(aes(x = distadj, y = avg_spl_low),data = ecometrics)+ theme_bw()+
+#   geom_point()+
+#   geom_smooth(method = "lm", formula = 'y ~x', se = FALSE, color = "black")+
+#   xlab("Distance to nearest adjacent patch")+
+#   ylab("Average SPL (dB re 1 uPa)")+
+  # theme(axis.title = element_text(size = 20), 
+  #       axis.text = element_text(size = 16))
+# cor(ecometrics$distadj, ecometrics$avg_spl_low, method = "pearson")
+
+
+
+## SPL High & Habitat
+# total cover, oyster, evenness, blade length, depth, temp, salinity, comm evenness, piscivore
+# check total abund sum, check landscape metrics
+
+ggplot(aes(x = totalcover, y = avg_spl_high),data = ecometrics)+ theme_bw()+
+  geom_point()+
+  geom_smooth(method = "lm", formula = 'y ~x', se = FALSE, color = "black")+
+  xlab("Total habitat cover")+
+  ylab("Average SPL (dB re 1 uPa)")+
+  theme(axis.title = element_text(size = 20), 
+        axis.text = element_text(size = 16))
+cor(ecometrics$totalcover, ecometrics$avg_spl_high, method = "pearson")
+
+
+ggplot(aes(x = oyster, y = avg_spl_high),data = ecometrics)+ theme_bw()+
+  geom_point()+
+  geom_smooth(method = "lm", formula = 'y ~x', se = FALSE, color = "black")+
+  xlab("Oyster cover")+
+  ylab("Average SPL (dB re 1 uPa)")+
+  theme(axis.title = element_text(size = 20), 
+        axis.text = element_text(size = 16))
+cor(ecometrics$oyster, ecometrics$avg_spl_high, method = "pearson")
+
+ggplot(aes(x = evenness, y = avg_spl_high),data = ecometrics)+ theme_bw()+
+  geom_point()+
+  geom_smooth(method = "lm", formula = 'y ~x', se = FALSE, color = "black")+
+  xlab("Habitat evenness")+
+  ylab("Average SPL (dB re 1 uPa)")+
+  theme(axis.title = element_text(size = 20), 
+        axis.text = element_text(size = 16))
+cor(ecometrics$evenness, ecometrics$avg_spl_high, method = "pearson")
+
+# removed NAs
+ggplot(aes(x = avg_blade_length, y = avg_spl_high),data = ecometrics)+ theme_bw()+
+  geom_point()+
+  geom_smooth(method = "lm", formula = 'y ~x', se = FALSE, color = "black")+
+  xlab("Seagrass canopy height (cm)")+
+  ylab("Average SPL (dB re 1 uPa)")+
+  theme(axis.title = element_text(size = 20), 
+        axis.text = element_text(size = 16))
+cor(ecometrics$avg_blade_length, ecometrics$avg_spl_high, method = "pearson")
+# seagrass blade length and SPL high cor = 0.779
+
+ggplot(aes(x = depth_m_avg, y = avg_spl_high),data = ecometrics)+ theme_bw()+
+  geom_point()+
+  geom_smooth(method = "lm", formula = 'y ~x', se = FALSE, color = "black")+
+  xlab("Depth (m)")+
+  ylab("Average SPL (dB re 1 uPa)")+
+  theme(axis.title = element_text(size = 20), 
+        axis.text = element_text(size = 16))
+cor(ecometrics$depth_m_avg, ecometrics$avg_spl_high, method = "pearson")
+# depth spl high cor = 0.445
+
+ggplot(aes(x = sal_avg, y = avg_spl_high),data = ecometrics)+ theme_bw()+
+  geom_point()+
+  geom_smooth(method = "lm", formula = 'y ~x', se = FALSE, color = "black")+
+  xlab("Salinity (ppt)")+
+  ylab("Average SPL (dB re 1 uPa)")+
+  theme(axis.title = element_text(size = 20), 
+        axis.text = element_text(size = 16))
+# cor(ecometrics$sal_avg, ecometrics$avg_spl_high, method = "pearson")
+# sal spl high cor = -0.468
+
+# can I interpret piscivore
+ggplot(aes(x = piscivore, y = avg_spl_high),data = ecometrics)+ theme_bw()+
+  geom_point()+
+  geom_smooth(method = "lm", formula = 'y ~x', se = FALSE, color = "black")+
+  xlab("Piscivore abundance")+
+  ylab("Average SPL (dB re 1 uPa)")+
+  theme(axis.title = element_text(size = 20), 
+        axis.text = element_text(size = 16))
+cor(ecometrics$piscivore, ecometrics$avg_spl_high, method = "pearson")
+
+ggplot(aes(x = saltmarsh_area, y = avg_spl_high),data = ecometrics)+ theme_bw()+
+  geom_point(color = "black")+
+  geom_smooth(method = "lm", formula = 'y ~x', se = FALSE, color = "black")+
+  xlab(expression(Landscape-scale~oyster~area~(m^2)))+
+  ylab("Average SPL (dB re 1 uPa)")+
+  theme(axis.title = element_text(size = 20), 
+        axis.text = element_text(size = 16),
+        legend.position = "none")
+cor(ecometrics$oyster_area, ecometrics$avg_spl_high, method = "pearson")
+
+```
+
+
+
+
+
+
+
+
+
+
+
+### END HERER FOR NOW!
+
+## Build model to explore variation in SPL
+
+1. Using predictor variables that crossed a 0.3 correlation threshold, examine simple linear model with all candidate predictors
+2. Evaluate model fit and evidence to retain or drop each predictor until a final model is reached
+
+** Need to consider whether a mixed-effects model structure is more appropriate - random effect of deployment, site? should habitat type be a fixed or random effect?, should any interactions be included?**
+
+Questions: 
+1. Do I need to standardize or transform predictors?
+2. How to evaluate if lm is sufficient, or should include mixed effects?
+3. How to incorporate the variable effects of habitat? Can I exclude mudflats?
+
+```{r}
+#library(nlme)
+
+# HIGH FREQUENCY - 
+#didn't include avg_blade_length even though strong correlation Possibly explore seagrass alone
+
+highMod1 = lm(avg_spl_high ~ totalcover + oyster + evenness + depth_m_avg + 
+                temp_avg + sal_avg + comm_evenness_sum + piscivore + habitat, data = ecometrics)
+
+
+#re-level habitat to mudflat as base case: 
+spl ~ creek + creek_cover + seagrass + seagrasscover
+
+# recommendation: 
+# build ecologicaly reasonable models 
+# possibility incorporate "biotic effects", "env effects" or not... 
+# then compare or average the models
+
+## this doesn't work due to different sizes - missing data
+#ecometrics$highmodpredict = predict(highMod2)
+
+# Selected highMod2 due to lowest ACI, but the conf intervals for many of the effects overlap with zero
+# doesn't this suggest no effect of those variables?
+confint(highMod2)
+
+# inspect residuals
+residplot <- function(model){
+  ggplot(model,aes(x=.fitted,y=.resid))+ 
+    geom_point()+
+    labs(x="Fitted values",y="Residuals")
+  }
+# inspect quantiles 
+qqplot <- function(model){
+  q1 <- ggplot(model,aes(sample=.stdresid))
+  q1+geom_point(stat="qq")+geom_abline(slope=1,intercept=0)+
+    labs(x="Theoretical Quantiles",y="Standardized residuals")
+}
+
+residplot(highMod2)
+qqplot(highMod2)
+confint(highMod2)
+
+# LOW FREQUENCY 
+#should I include interaction between habitat and total cover?
+
+lowMod1 = lm(avg_spl_low ~ oyster + depth_m_avg + total_abund_sum + comm_richness_sum +
+                 comm_evenness_sum + habitat, data = ecometrics)
+summary(lowMod1)
+drop1(lowMod1)
+
+lowMod2 = lm(avg_spl_low ~ oyster + depth_m_avg + 
+                 comm_evenness_sum, data = ecometrics)
+summary(lowMod2)
+drop1(lowMod2)
+
+AIC(lowMod1, lowMod2)
+
+# Selected lowMod2 for trial, but really not distinguishable by AIC
+confint(lowMod2)
+
+residplot(lowMod2)
+qqplot(lowMod2)
+
+```
+
+## Variation within habitat type
+
+```{r}
+# Seagrass
+sgMetrics = ecometrics %>%
+  filter(habitat == "seagrass")
+
+sound_seagrass = sgMetrics %>%
+  select(site, habitat, totalcover, seagrass_comb, oyster, saltmarsh, richness, evenness,
+         avg_shoot_density, avg_blade_length,
+        avg_spl_low, avg_spl_high, BI_low, BI_high)
+
+ggpairs(sound_seagrass[,3:14])
+
+# # Creek
+# creekMetrics = ecometrics %>%
+#   filter(habitat == "creek")
+# 
+# sound_creek = creekMetrics %>%
+#   select(site, habitat, totalcover, seagrass_comb, oyster, saltmarsh, richness, evenness,
+#          avg_shoot_density, avg_blade_length,
+#         avg_spl_low, avg_spl_high, BI_low, BI_high)
+# 
+# ggpairs(sound_creek,3:14)
+
+
+
+```
+
+## Plots exploring pairwise correlation and variation among habitat types
+
+```{r}
+
+# add habitat label and filter to only seagrass
+
+#Benthic metrics
+ggplot(aes(x = richness, y = avg_spl_low, color = habitat), data = ecometrics)+
+  geom_point()
+
+ggplot(aes(x = richness_comb, y = avg_spl_low, color = habitat), data = ecometrics)+
+  geom_point()
+
+ggplot(aes(x = evenness , y = avg_spl_low, color = habitat), data = ecometrics)+
+  geom_point()
+
+ggplot(aes(x = totalcover, y = avg_spl_low, color = habitat), data = ecometrics)+ theme_bw()+
+  geom_point(size = 3)+
+  geom_smooth(method = "lm", se = FALSE)+
+  scale_color_discrete(name = "Habitat type")+
+  ylab("Average sound pressure level (db re 1 uPa")+ 
+  xlab("Average percent cover")+
+  theme(axis.text = element_text(size = 16), 
+        axis.title = element_text(size = 18), 
+        legend.title = element_text(size = 18), 
+        legend.text = element_text(size = 16))
+
+#Habitat Metrics
+ggplot(aes(x = seagrass_comb, y = avg_spl_low, color = habitat), data = ecometrics)+
+  geom_point()
+
+ggplot(aes(x = saltmarsh, y = avg_spl_low, color = habitat), data = ecometrics)+
+  geom_point()
+
+ggplot(aes(x = saltmarsh, y = avg_spl_high, color = habitat), data = ecometrics)+
+  geom_point()
+
+ggplot(aes(x = oyster, y = avg_spl_high, color = habitat), data = ecometrics)+
+  geom_point()
+
+ggplot(aes(x = oyster, y = avg_spl_low, color = habitat), data = ecometrics)+
+  geom_point()
+
+# Community metrics
+ggplot(aes(x = total_abund_sum, y = avg_spl_low, color = habitat), data = ecometrics)+
+  geom_point()
+
+ggplot(aes(x = comm_evenness_sum, y = avg_spl_low, color = habitat), data = ecometrics)+
+  geom_point()
+
+ggplot(aes(x = comm_richness_sum, y = avg_spl_low, color = habitat), data = ecometrics)+
+  geom_point()
+
+ggplot(aes(x = X1_Depth_m, y = avg_spl_low, color = habitat), data = ecometrics)+
+  geom_point()
+
+
+```
+>>>>>>> d69924ce5234437194dd03e3a9ca0fe3c6728deb
