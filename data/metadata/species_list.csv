@@ -1,0 +1,77 @@
+<<<<<<< HEAD
+,colnames.spp_data.,common_name,guild,guild_secondary,trophic_level,soniferous
+6,num_anc_spp,anchovy,omnivore,planktivore,2.9   ±0.38,N
+33,num_toz_car,arrow_shrimp,omnivore,omni_2,NA,N
+4,num_opi_ogl,atlantic_thread_herring,carnivore,planktivore,4.5   ±0.0 se,Y
+17,num_cen_str,black_sea_bass,carnivore,piscivore,3.9   ±0.2,Y
+30,num_ach_spi,blotched_swimming_crab,omnivore,omni_2,NA,N
+31,num_cal_sap,blue_crab,carnivore,carn_2,NA,N
+14,num_pom_sal,bluefish,carnivore,piscivore,4.5   ±0.3 ,Y
+35,num_pen_azt,brown_shrimp,omnivore,omni_2,NA,N
+2,num_hyp_hen,feather_blenny,omnivore,invertivore,2.8   ±0.2 se,N
+18,num_myc_mic,gag_grouper,carnivore,invertivore,3.7   ±0.4,Y
+34,num_pal_spp,grass_shrimp,omnivore,herb_2,NA,N
+10,num_lut_gri,gray_snapper,carnivore,planktivore,4.2   ±0.3,Y
+13,num_par_alb,gulf_flounder,carnivore,piscivore,4.3   ±0.6,N
+11,num_lut_syn,lane_snapper,carnivore,piscivore,3.8   ±0.2,Y
+26,num_syo_foe,lizardfish_inshore,carnivore,piscivore,4.5   ±0.0,N
+7,num_gerreidae,mojarra,omnivore,detritivore,2.2   ±0.0,Y
+27,num_sph_mac,nothern_puffer,carnivore,invertivore,4.0   ±0.66,N
+36,num_pen_spp,penaeid_shrimp,omnivore,omni_2,NA,N
+8,num_ort_chr,pigfish,carnivore,detritivore,3.4   ±0.0,Y
+21,num_lag_rho,pinfish,carnivore,invertivore,4.4   ±0.0,N
+24,num_syg_spp,pipefish,carnivore,planktivore,3.2   ±0.0 ,N
+12,num_mon_his,planehead_filefish,carnivore,invertivore,2.6   ±0.1,Y
+38,num_aplysiidae,sea_hare,herbivore,herb_2,NA,N
+19,num_arc_pro,sheepshead,carnivore,invertivore,3.5   ±0.53,N
+37,num_shrimp,shrimp,omnivore,omni_2,NA,N
+15,num_bai_chr,silver_perch,carnivore,invertivore,3.2   ±0.0 ,Y
+28,num_das_ame,southern_stingray,carnivore,invertivore,3.5   ±0.0,N
+22,num_sph_spp,sphyraenid,carnivore,piscivore,4.5   ±0.6,N
+29,num_lip_spp,spider_crab,omnivore,omni_2,NA,N
+16,num_lei_xan,spot,carnivore,invertivore,3.2   ±0.1,Y
+20,num_dip_hol,spottail_pinfish,carnivore,invertivore,2.3   ±0.0,N
+5,num_chi_sch,striped_burrfish,carnivore,invertivore,3.5   ±0.37,Y
+32,num_por_spp,swimming_crab,carnivore,omni_2,NA,N
+1,num_ops_tau,toadfish,omnivore,carn_2,3.8   ±0.4,Y
+3,num_car_bar,yellow_jack,carnivore,piscivore,4.5   ±0.2,Y
+9,num_lut_chr,yellowtail_snapper,carnivore,planktivore,4.0   ±0.3,Y
+=======
+,colnames.spp_data.,common_name,guild,guild_secondary,trophic_level,soniferous
+6,num_anc_spp,anchovy,omnivore,planktivore,2.9   ±0.38,N
+33,num_toz_car,arrow_shrimp,omnivore,omni_2,NA,N
+4,num_opi_ogl,atlantic_thread_herring,carnivore,planktivore,4.5   ±0.0 se,Y
+17,num_cen_str,black_sea_bass,carnivore,piscivore,3.9   ±0.2,Y
+30,num_ach_spi,blotched_swimming_crab,omnivore,omni_2,NA,N
+31,num_cal_sap,blue_crab,carnivore,carn_2,NA,N
+14,num_pom_sal,bluefish,carnivore,piscivore,4.5   ±0.3 ,Y
+35,num_pen_azt,brown_shrimp,omnivore,omni_2,NA,N
+2,num_hyp_hen,feather_blenny,omnivore,invertivore,2.8   ±0.2 se,N
+18,num_myc_mic,gag_grouper,carnivore,invertivore,3.7   ±0.4,Y
+34,num_pal_spp,grass_shrimp,omnivore,herb_2,NA,N
+10,num_lut_gri,gray_snapper,carnivore,planktivore,4.2   ±0.3,Y
+13,num_par_alb,gulf_flounder,carnivore,piscivore,4.3   ±0.6,N
+11,num_lut_syn,lane_snapper,carnivore,piscivore,3.8   ±0.2,Y
+26,num_syo_foe,lizardfish_inshore,carnivore,piscivore,4.5   ±0.0,N
+7,num_gerreidae,mojarra,omnivore,detritivore,2.2   ±0.0,Y
+27,num_sph_mac,nothern_puffer,carnivore,invertivore,4.0   ±0.66,N
+36,num_pen_spp,penaeid_shrimp,omnivore,omni_2,NA,N
+8,num_ort_chr,pigfish,carnivore,detritivore,3.4   ±0.0,Y
+21,num_lag_rho,pinfish,carnivore,invertivore,4.4   ±0.0,N
+24,num_syg_spp,pipefish,carnivore,planktivore,3.2   ±0.0 ,N
+12,num_mon_his,planehead_filefish,carnivore,invertivore,2.6   ±0.1,Y
+38,num_aplysiidae,sea_hare,herbivore,herb_2,NA,N
+19,num_arc_pro,sheepshead,carnivore,invertivore,3.5   ±0.53,N
+37,num_shrimp,shrimp,omnivore,omni_2,NA,N
+15,num_bai_chr,silver_perch,carnivore,invertivore,3.2   ±0.0 ,Y
+28,num_das_ame,southern_stingray,carnivore,invertivore,3.5   ±0.0,N
+22,num_sph_spp,sphyraenid,carnivore,piscivore,4.5   ±0.6,N
+29,num_lip_spp,spider_crab,omnivore,omni_2,NA,N
+16,num_lei_xan,spot,carnivore,invertivore,3.2   ±0.1,Y
+20,num_dip_hol,spottail_pinfish,carnivore,invertivore,2.3   ±0.0,N
+5,num_chi_sch,striped_burrfish,carnivore,invertivore,3.5   ±0.37,Y
+32,num_por_spp,swimming_crab,carnivore,omni_2,NA,N
+1,num_ops_tau,toadfish,omnivore,carn_2,3.8   ±0.4,Y
+3,num_car_bar,yellow_jack,carnivore,piscivore,4.5   ±0.2,Y
+9,num_lut_chr,yellowtail_snapper,carnivore,planktivore,4.0   ±0.3,Y
+>>>>>>> d69924ce5234437194dd03e3a9ca0fe3c6728deb

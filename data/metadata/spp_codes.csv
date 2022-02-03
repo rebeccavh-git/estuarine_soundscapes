@@ -1,0 +1,103 @@
+<<<<<<< HEAD
+Family,scientific_name,common_name,spp_code,spp_code_lc
+Atherinidae,Menidia spp.,Silverside,Men_spp,men_spp
+Batrachioddidae,Opsanus tao,Oyster Toadfish,Ops_tao,ops_tao
+Blenniidae,Hypsoblennius hentzi,Feather Blenny,Hyp_hen,hyp_hen
+Carangidae,Carangoides bartholomaei,Yellow Jack,Car_bar,car_bar
+Carangidae,Chloroscombrus chrysurus,Atlantic Bumper,Chl_chr,chl_chr
+Clupeidae,Opisthonema oglinum,Atlantic Thread Herring,Opi_ogl,opi_ogl
+Diodontidae,Chilomycterus schoepfi,Striped Burrfish,Chi_sch,chi_sch
+Engraulidae,Anchoa spp.,Anchovy,Anc_spp,anc_spp
+Gerreidae,,Mojarra,Gerreidae,gerreidae
+Haemulidae,Orthopritis chrysoptera,Pigfish,Ort_chr,ort_chr
+Labridae,Halichoeres bivittatus,Slippery Dick,Hal_biv,hal_biv
+Labridae,Tautoga onitis,Tautog,Tau_oni,tau_oni
+Lutjanidae,Lutjanus chrysurus,Yellowtail Snapper,Lut_chr,lut_chr
+Lutjanidae,Lutjanus griseus,Grey/Mangrove Snapper,Lut_gri,lut_gri
+Lutjanidae,Lutjanus synagris,Lane Snapper,Lut_syn,lut_syn
+Lutjanidae,Lutjanus analis,Mutton Snapper,Lut_ana,lut_ana
+Monacanthidae,Stephanolepis hispidus,Planehead Filefish,Mon_his,mon_his
+Monacanthidae,,Filefish,Monacanthidae,monacanthidae
+Paralichthyidae,Citharichthys spilopterus,Bay Whiff,Cit_spi,cit_spi
+Paralichthyidae,Paralichthys albigutta,Gulf Flounder ,Par_alb,par_alb
+Pomatomidae,Pomatomus saltatrix,Bluefish,Pom_sal,pom_sal
+Sciaenidae,Bairdiella chrysoura,Siver Perch,Bai_chr,bai_chr
+Sciaenidae,Cynoscion nebulosus,Speckled Sea Trout,Cyn_neb,cyn_neb
+Sciaenidae,Leiostomus xanthurus,Spot,Lei_xan,lei_xan
+Sciaenidae,Sciaenops ocellatus,Red Drum,Sci_oce,sci_oce
+Serranidae,Centropristis striata,Black Sea Bass,Cen_str,cen_str
+Serranidae,Mycteroperca microlepis,Gag Grouper,Myc_mic,myc_mic
+Serranidae,Serramus subligarius,Belted Sandfish,Ser_sub,ser_sub
+Sparidae,Archosargus probatocephalus,Sheepshead,Arc_pro,arc_pro
+Sparidae,Diplodus holbrooki,Spottail Pinfish,Dip_hol,dip_hol
+Sparidae,Lagodon rhomboides,Pinfish,Lag_rho,lag_rho
+Sparidae,Stenotomus caprinus,Longspine Porgy,Ste_cap,ste_cap
+Sphyraenidae,Sphyraena spp.,Sphyraenid (Sennet/Barracuda),Sph_spp,sph_spp
+Sygnathidae,Sygnathus sp.,Pipefish,Syg_spp,syg_spp
+Synodontidae,Synodus foetens,"Lizardfish, Inshore",Syo_foe,syo_foe
+Tetraodontidae,Sphoeroides maculatus,Northern Pufferfish,Sph_mac,sph_mac
+Dasyatidae,Dasyatis americana,Southern Stingray,Das_ame,das_ame
+Teuthida,,Squid,Teuthida,teuthida
+Epialtidae,Libinia spp.,Spider/Decorator Crab,Lib_spp,lib_spp
+Panopeidae,,Mud Crab ,Panopeidae,panopeidae
+Portunidae,Achelous spinimanus,Blotched Swimming Crab,Ach_spi,ach_spi
+Portunidae,Callinectes sapidus,Blue Crab,Cal_sap,cal_sap
+Portunidae,Portunus spp.,Swimming Crab,Por_spp,por_spp
+Hippolytidae,Tozeuma carolinense,Arrow Shrimp,Toz_car,toz_car
+Palaemonidae,Palaemon spp.,Palaemon Grass Shrimp,Pal_spp,pal_spp
+Penaeidae,Penaeus aztecus,Brown Shrimp,Pen_azt,pen_azt
+Penaeid,Penaeus spp,Commerical Shrimp,Pen_spp,pen_spp
+,,UnID Shrimp,Shrimp,shrimp
+Aplysiidae,,Sea Hare,Aplysiidae,aplysiidae
+=======
+Family,scientific_name,common_name,spp_code,spp_code_lc
+Atherinidae,Menidia spp.,Silverside,Men_spp,men_spp
+Batrachioddidae,Opsanus tao,Oyster Toadfish,Ops_tao,ops_tao
+Blenniidae,Hypsoblennius hentzi,Feather Blenny,Hyp_hen,hyp_hen
+Carangidae,Carangoides bartholomaei,Yellow Jack,Car_bar,car_bar
+Carangidae,Chloroscombrus chrysurus,Atlantic Bumper,Chl_chr,chl_chr
+Clupeidae,Opisthonema oglinum,Atlantic Thread Herring,Opi_ogl,opi_ogl
+Diodontidae,Chilomycterus schoepfi,Striped Burrfish,Chi_sch,chi_sch
+Engraulidae,Anchoa spp.,Anchovy,Anc_spp,anc_spp
+Gerreidae,,Mojarra,Gerreidae,gerreidae
+Haemulidae,Orthopritis chrysoptera,Pigfish,Ort_chr,ort_chr
+Labridae,Halichoeres bivittatus,Slippery Dick,Hal_biv,hal_biv
+Labridae,Tautoga onitis,Tautog,Tau_oni,tau_oni
+Lutjanidae,Lutjanus chrysurus,Yellowtail Snapper,Lut_chr,lut_chr
+Lutjanidae,Lutjanus griseus,Grey/Mangrove Snapper,Lut_gri,lut_gri
+Lutjanidae,Lutjanus synagris,Lane Snapper,Lut_syn,lut_syn
+Lutjanidae,Lutjanus analis,Mutton Snapper,Lut_ana,lut_ana
+Monacanthidae,Stephanolepis hispidus,Planehead Filefish,Mon_his,mon_his
+Monacanthidae,,Filefish,Monacanthidae,monacanthidae
+Paralichthyidae,Citharichthys spilopterus,Bay Whiff,Cit_spi,cit_spi
+Paralichthyidae,Paralichthys albigutta,Gulf Flounder ,Par_alb,par_alb
+Pomatomidae,Pomatomus saltatrix,Bluefish,Pom_sal,pom_sal
+Sciaenidae,Bairdiella chrysoura,Siver Perch,Bai_chr,bai_chr
+Sciaenidae,Cynoscion nebulosus,Speckled Sea Trout,Cyn_neb,cyn_neb
+Sciaenidae,Leiostomus xanthurus,Spot,Lei_xan,lei_xan
+Sciaenidae,Sciaenops ocellatus,Red Drum,Sci_oce,sci_oce
+Serranidae,Centropristis striata,Black Sea Bass,Cen_str,cen_str
+Serranidae,Mycteroperca microlepis,Gag Grouper,Myc_mic,myc_mic
+Serranidae,Serramus subligarius,Belted Sandfish,Ser_sub,ser_sub
+Sparidae,Archosargus probatocephalus,Sheepshead,Arc_pro,arc_pro
+Sparidae,Diplodus holbrooki,Spottail Pinfish,Dip_hol,dip_hol
+Sparidae,Lagodon rhomboides,Pinfish,Lag_rho,lag_rho
+Sparidae,Stenotomus caprinus,Longspine Porgy,Ste_cap,ste_cap
+Sphyraenidae,Sphyraena spp.,Sphyraenid (Sennet/Barracuda),Sph_spp,sph_spp
+Sygnathidae,Sygnathus sp.,Pipefish,Syg_spp,syg_spp
+Synodontidae,Synodus foetens,"Lizardfish, Inshore",Syo_foe,syo_foe
+Tetraodontidae,Sphoeroides maculatus,Northern Pufferfish,Sph_mac,sph_mac
+Dasyatidae,Dasyatis americana,Southern Stingray,Das_ame,das_ame
+Teuthida,,Squid,Teuthida,teuthida
+Epialtidae,Libinia spp.,Spider/Decorator Crab,Lib_spp,lib_spp
+Panopeidae,,Mud Crab ,Panopeidae,panopeidae
+Portunidae,Achelous spinimanus,Blotched Swimming Crab,Ach_spi,ach_spi
+Portunidae,Callinectes sapidus,Blue Crab,Cal_sap,cal_sap
+Portunidae,Portunus spp.,Swimming Crab,Por_spp,por_spp
+Hippolytidae,Tozeuma carolinense,Arrow Shrimp,Toz_car,toz_car
+Palaemonidae,Palaemon spp.,Palaemon Grass Shrimp,Pal_spp,pal_spp
+Penaeidae,Penaeus aztecus,Brown Shrimp,Pen_azt,pen_azt
+Penaeid,Penaeus spp,Commerical Shrimp,Pen_spp,pen_spp
+,,UnID Shrimp,Shrimp,shrimp
+Aplysiidae,,Sea Hare,Aplysiidae,aplysiidae
+>>>>>>> d69924ce5234437194dd03e3a9ca0fe3c6728deb
