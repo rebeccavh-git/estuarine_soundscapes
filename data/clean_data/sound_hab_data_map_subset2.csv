@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 ID,site,habitat,deploy_num,lat,long
 1,Creek_7,creek,1,34.63508333,-76.5302
 2,Mudflat_2,mudflat,1,34.70761667,-76.597
@@ -24,30 +23,3 @@ ID,site,habitat,deploy_num,lat,long
 22,Creek_6,creek,6,34.6561,-76.5235
 23,Seagrass_1,seagrass,6,34.69122,-76.62159
 24,Seagrass_17,seagrass,6,34.66416667,-76.5288
-=======
-ID,site,habitat,deploy_num,lat,long
-1,Creek_7,creek,1,34.63508333,-76.5302
-2,Mudflat_2,mudflat,1,34.70761667,-76.597
-3,Seagrass_10,seagrass,1,34.66981667,-76.564
-4,Seagrass_12,seagrass,1,34.66261667,-76.55798
-5,Creek_2,creek,2,34.6932,-76.6135
-6,Mudflat_1,mudflat,2,34.69326,-76.62637
-7,Seagrass_2,seagrass,2,34.69881,-76.59599
-8,Seagrass_4,seagrass,2,34.70428,-76.58696
-9,Creek_B,creek,3,34.75903333,-76.43635
-10,Mudflat_Core,mudflat,3,34.84963333,-76.3561
-11,Seagrass_B,seagrass,3,34.76266667,-76.4403
-12,Seagrass_C,seagrass,3,34.74528333,-76.4503
-13,Creek_8,creek,4,34.64163333,-76.5302
-14,Mudflat_7,mudflat,4,34.6571,-76.5283
-15,Seagrass_6,seagrass,4,34.6719,-76.5743
-16,Seagrass_9,seagrass,4,34.66635,-76.5666
-17,Creek_4,creek,5,34.7188,-76.6089
-18,Creek_5,creek,5,34.70975,-76.6007
-19,Seagrass_14,seagrass,5,34.6706,-76.5545
-20,Seagrass_15,seagrass,5,34.65731,-76.54071
-21,Creek_3,creek,6,34.697,-76.6072
-22,Creek_6,creek,6,34.6561,-76.5235
-23,Seagrass_1,seagrass,6,34.69122,-76.62159
-24,Seagrass_17,seagrass,6,34.66416667,-76.5288
->>>>>>> d69924ce5234437194dd03e3a9ca0fe3c6728deb
