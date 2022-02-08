@@ -48,13 +48,57 @@ ecometrics = left_join(ecometrics, toadCR, by = c("site_code" = "Site"))
 
 ```
 
-## Summarize toadfish call rate by habitat
+## Toadfish fundamental frequency vs temp
 
 ```{r}
 
-ggplot(data = ecometrics, aes(x = site_code, y = ToadCallRate, fill = habitat))+ theme_bw()+
-  geom_col()
-  
+F1_temp = read.csv("data/clean_data/toadF1_temps.csv", header = TRUE)
+F1_temp = na.omit(F1_temp)
+
+ggplot(data = F1_temp, aes(x = fileTemp, y = ToadF1))+ theme_bw()+
+  geom_point()+
+  geom_smooth(method = lm, se = FALSE)+
+  xlab("Temperature")+
+  ylab("Fundamental Frequency")+
+  theme(axis.text = element_text(size = 12), 
+        axis.title = element_text(size = 14))
+
+toadF1_temp = lm(ToadF1 ~ fileTemp, data = F1_temp)
+summary(toadF1_temp)
+
+
+```
+
+## Summarize toadfish call rate by habitat
+
+```{r}
+ecometrics$ToadCallRate[is.na(ecometrics$ToadCallRate)] = 0
+
+ggplot(data = ecometrics, aes(x = reorder(site_code, ToadCallRate), y = ToadCallRate, fill = habitat))+ theme_bw()+
+  geom_col()+
+  xlab("Site")+
+  ylab("Call Rate (calls/2 min)")+
+  scale_fill_discrete(labels = c("Saltmarsh creek", "Mudflat", "Seagrass"))+
+  labs(fill = "Habitat")+
+  theme(axis.text.x = element_text(angle = -90, hjust = 0, vjust = .3), 
+        axis.title = element_text(size = 14),
+        axis.text = element_text(size = 12),
+        legend.text = element_text(size = 12),
+        legend.title = element_text(size = 14))
+
+ggplot(data = ecometrics, aes(x = reorder(site_code, X), y = ToadCallRate, fill = habitat))+ theme_bw()+
+  geom_col()+
+  xlab("Site")+
+  ylab("Call Rate (calls/2 min)")+
+  scale_fill_discrete(labels = c("Saltmarsh creek", "Mudflat", "Seagrass"))+
+  labs(fill = "Habitat")+
+  theme(axis.text.x = element_text(angle = -90, hjust = 0, vjust = .3), 
+        axis.title = element_text(size = 14),
+        axis.text = element_text(size = 12),
+        legend.text = element_text(size = 12),
+        legend.title = element_text(size = 14))
+
+
 ggplot(data = ecometrics, aes(x = oyster, y = ToadCallRate))+ theme_bw()+
   geom_point()
 
