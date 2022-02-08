@@ -19,18 +19,11 @@ library(tidyr)
 #install.packages("readr")
 
 ecometrics = read.csv("data/clean_data/ecometrics.csv")
-#ACI = read.csv("data/clean_data/avg_ACI1024.csv")
-#H_entropy = read.csv("data/clean_data/avg_H1024.csv")
-BI = read.csv("data/clean_data/bioacousticIndex.csv")
-# need to correct averaging method for these average SPLs in smaller low f bins
-#splAvgLowBins = read.csv("data/clean_data/splAvgLowBins.csv")
+#splAvg = read.csv("data/clean_data/avg_pmHT_spl.csv")
 
-#ecometrics$ACI = ACI$avg_ACI1024
-#ecometrics$entropy= H_entropy$avg_H1024
+BI = read.csv("data/clean_data/bioacousticIndex.csv")
 ecometrics$BI_low = BI$BI_low
 ecometrics$BI_high = BI$BI_high
-#ecometrics$splLlow = splAvgLowBins$splAvgLlow
-#ecometrics$splMlow = splAvgLowBins$splAvgMlow
 
 # make deployment a factor to include as a random effect
 ecometrics$deploy = factor(ecometrics$deploy_num.x)
@@ -57,34 +50,26 @@ ecometrics$land_richness = annMetrics$richness_landscape
 
 Start with habitat then community to reduce the number of correlations viewing at a single time
 ```{r}
-ecometrics_1 = ecometrics[,c(4:24,27:36,38:65,68:107)]
+ecometrics_1 = ecometrics[,c(5:24,27:36,38:65,71:105)]
 ecometrics_1 = as.data.frame(sapply(ecometrics_1, as.numeric))
 metricClass = lapply(ecometrics_1, class)
 
 MetricCorrAll = cor(ecometrics_1, use = "complete.obs")
 write.csv(MetricCorrAll, "data/raw_data/metricCorrAll.csv")
 
-
 # HABITAT
-# sound_hab = ecometrics %>%
-#   select(site, habitat, totalcover, seagrass_comb, oyster, saltmarsh, richness, evenness,
-#          avg_shoot_density, avg_blade_length,
-#         avg_spl_low, splLlow, splMlow, avg_spl_high) #, #BI_low, BI_high)
-
+# possibly need to remove oyster due to correlation with oyster area (landscape)
 sound_hab = ecometrics %>%
   select(site, habitat, totalcover, oyster, saltmarsh, evenness,
          avg_shoot_density, avg_blade_length,
-        avg_spl_low, avg_spl_high, BI_low, BI_high)
+        avg_spl_low, avg_spl_high)
 
-ggpairs(sound_hab[,3:12])
-#ggpairs(sound_hab[,3:13]) # added ACI & H
-#ggpairs(sound_hab, columns = c(3,4,5,6,7,8,9,10,11), 
-#        mapping = aes(color = as.factor(sound_hab$habitat)))
+ggpairs(sound_hab[,3:10])
 
 # COMMUNITY
 sound_com = ecometrics %>%
-  select(site, habitat, depth_m_avg, temp_avg, sal_avg, total_abund_sum, comm_richness_sum, comm_evenness_sum, 
-         piscivore, avg_spl_low, avg_spl_high, BI_low, BI_high)
+  select(site, habitat, depth_m_avg, sal_avg, total_abund_sum, comm_richness_sum, comm_evenness_sum, 
+          herbivore, omnivore, detritivore, piscivore, avg_spl_low, avg_spl_high)
 
 #sound_com$log_abund = log10(sound_com$total_abund_sum)
 #plot(sound_com$total_abund_sum)

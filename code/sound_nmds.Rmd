@@ -89,18 +89,16 @@ env_data$dist2adj = neighbor_data$dist2adjPatch
 env_data$richness_land = neighbor_data$richness_landscape # -0.8 corr with dis2adj patch
 
 env_cor = cor(env_data[,c(4:34)], use = "pairwise.complete.obs")
-#write.csv(env_cor,"data/clean_data/nmds_env_cor.csv")
+write.csv(env_cor,"data/clean_data/nmds_env_cor.csv")
 
-# TO DO: Go through the correlation matrix and identify variables to remove.
-
-#without seagrass only metrics  -deploy_num.x,
+# Went through the correlation matrix and identified correlated variables to remove.
 env_filt = env_data %>%
-  select(-index, -site, -bare, -evenness, -seagrass_comb, -shannonD_comb, -evenness_comb,
-         -totalcover, -avg_shoot_density, -avg_blade_length, -max_10, -max_25perc, -richness_land, -oyster_area)
+  select(halodule, zostera, ruppia, algae, oyster, saltmarsh, other, richness, evenness, seagrass_area, seagrass_perim.area.ratio,
+         seagrass_shape.index, saltmarsh_area, saltmarsh_perim.area.ratio, nn_Land, richness_land)
 
 # need to assess normality and consider transformations
 # convert to z-scores?
-env_zscores = as.data.frame(sapply(env_filt, function(env_filt) (env_filt-mean(env_filt))/sd(env_filt)))
+#env_zscores = as.data.frame(sapply(env_filt, function(env_filt) (env_filt-mean(env_filt))/sd(env_filt)))
 
 
 #test with vegan envfit
@@ -124,8 +122,8 @@ ggplot(aes(x = NMDS1, y = NMDS2), data = nmdsScores)+ theme_bw()+
   geom_hline(yintercept = 0, color = "grey")+
   geom_vline(xintercept = 0, color = "grey")
 
-# nmds with only significant env vectors
-envScoresSig = envScores[c(2,6,12),]
+# nmds with only significant env vectors (a <0.1)
+envScoresSig = envScores[c(1,4,5,10),]
 #envScoresSig = envScores[c(1,4,5,10),]
 ggplot(aes(x = NMDS1, y = NMDS2), data = nmdsScores)+ theme_bw()+
   geom_point(size = 3, aes(color = habitat, shape = deploy))+

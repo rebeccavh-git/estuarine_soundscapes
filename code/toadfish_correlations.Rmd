@@ -1,0 +1,76 @@
+---
+title: "toadfish_correlations"
+author: "Becca Van Hoeck"
+date: "2/8/2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Load libraries
+
+```{r}
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+
+```
+
+## Load data
+
+```{r}
+toadCR = read.csv("data/clean_data/ToadfishCallRate.csv")
+pmHT_temp = read.csv("data/clean_data/pmHT_AvgTemp.csv", header = FALSE)
+
+ecometrics = read.csv("data/clean_data/ecometrics.csv")
+
+# make deployment a factor to include as a random effect
+ecometrics$deploy = factor(ecometrics$deploy_num.x)
+
+# correct habitat assignment for Seagrass C
+ecometrics$habitat[ecometrics$site_code == "SC"] = "seagrass"
+
+# load other metrics
+landscapeMetrics = read.csv("data/clean_data/landscape_metrics.csv", header = TRUE)
+landscapeMetrics = landscapeMetrics %>%
+  mutate(habitat_total = seagrass_area+saltmarsh_area+oyster_area)
+ecometrics = left_join(ecometrics, landscapeMetrics, by = c("site_code" = "site"))
+
+annMetrics = read.csv("data/raw_data/nearest_neighbor_results.csv", header = TRUE)
+ecometrics$nnratio = annMetrics$NNratio
+ecometrics$distadj = annMetrics$dist2adjPatch
+ecometrics$land_richness = annMetrics$richness_landscape
+
+ecometrics = left_join(ecometrics, toadCR, by = c("site_code" = "Site"))
+
+
+```
+
+## Summarize toadfish call rate by habitat
+
+```{r}
+
+ggplot(data = ecometrics, aes(x = site_code, y = ToadCallRate, fill = habitat))+ theme_bw()+
+  geom_col()
+  
+ggplot(data = ecometrics, aes(x = oyster, y = ToadCallRate))+ theme_bw()+
+  geom_point()
+
+
+```
+
+# Examine correlations with patch scale habitat
+
+```{r}
+
+toad_hab = ecometrics %>%
+  select(site, habitat, totalcover, oyster, saltmarsh, evenness,
+         avg_shoot_density, avg_blade_length, ToadCallRate, ToadCallRateNorm)
+
+toad_cor = cor(toad_hab[,c(3:10)], use = "complete.obs")
+toad_saltmarsh = cor(toad_hab$ToadCallRate, toad_hab$saltmarsh, use = "complete.obs")
+
+```
+
