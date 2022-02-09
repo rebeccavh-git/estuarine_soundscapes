@@ -106,3 +106,30 @@ for i=1:size(mc,1)
 end
 fclose(fid);
 
+
+%% Attempting my own code to classify unlabelled images using trained network
+
+clear
+% Load network
+load('myWork_pass3.mat');
+clearvars -except net
+
+% Classify unlabelled images
+    cnt=1;
+    labels = [];
+        d=dir(['unlabelled_test',filesep,'*jpg']); % list all jpegs in folder
+        for j=1:numel(d)
+            img=imread(['unlabelled_test',filesep,d(j).name]); %load image
+            [l,s]=classify(net,img); % classify image: l=label, s=scores
+            labels = [labels;l];
+            idx=find(s==max(s)); % finds max score
+            out(cnt,:)=[j,idx(1),s(idx(1))]; % count, label index, score
+            cnt=cnt+1;
+            fprintf('.')
+        end
+        fprintf('\n')
+    
+        site = "M1";
+    save test_classify_T1.mat
+    
+        
