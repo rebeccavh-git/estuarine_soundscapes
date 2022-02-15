@@ -16,7 +16,7 @@ library(ggplot2)
 library(GGally)
 library(dplyr)
 library(tidyr)
-#install.packages("readr")
+
 
 ecometrics = read.csv("data/clean_data/ecometrics.csv")
 #splAvg = read.csv("data/clean_data/avg_pmHT_spl.csv")
@@ -36,11 +36,20 @@ landscapeMetrics = landscapeMetrics %>%
   mutate(habitat_total = seagrass_area+saltmarsh_area+oyster_area)
 ecometrics = left_join(ecometrics, landscapeMetrics, by = c("site_code" = "site"))
 
+# manually edited nearest_neighbor_results.csv to include site_code
 annMetrics = read.csv("data/raw_data/nearest_neighbor_results.csv", header = TRUE)
+
+
 ecometrics$nnratio = annMetrics$NNratio
 ecometrics$distadj = annMetrics$dist2adjPatch
 ecometrics$land_richness = annMetrics$richness_landscape
 
+# load species specific catch data and filter to species of interest
+std_catch = read.csv("data/clean_data/std_catch_sum.csv")
+ecometrics$silverPerch = std_catch$num_bai_chr
+ecometrics$pigfish = std_catch$num_ort_chr
+
+write.csv(ecometrics, "data/clean_data/ecometrics.csv")
 
 ```
 
@@ -50,7 +59,7 @@ ecometrics$land_richness = annMetrics$richness_landscape
 
 Start with habitat then community to reduce the number of correlations viewing at a single time
 ```{r}
-ecometrics_1 = ecometrics[,c(5:24,27:36,38:65,71:105)]
+ecometrics_1 = ecometrics[,c(5:24,27:36,38:65,71:107)]
 ecometrics_1 = as.data.frame(sapply(ecometrics_1, as.numeric))
 metricClass = lapply(ecometrics_1, class)
 

@@ -1,0 +1,34 @@
+---
+title: "correlation_by_habitat"
+author: "Becca Van Hoeck"
+date: "2/15/2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## load packages
+
+```{r}
+library(ggplot2)
+library(dplyr)
+library(tidyr)
+
+```
+
+## load data
+
+```{r}
+
+metrics = read.csv("data/clean_data/ecometrics.csv")
+
+# Remove replicate trawls for simplicity
+
+metrics = metrics %>%
+  select(-contains(c("X1","X2","sand", "channel","land","shape","mudflat")))
+
+
+```
+

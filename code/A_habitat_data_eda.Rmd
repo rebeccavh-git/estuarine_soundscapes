@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 ---
 title: "habitat_data"
 author: "Becca Van Hoeck"
@@ -21,8 +20,9 @@ library(vegan)
 ## Load all habitat data
 
 ```{r }
-#rm(list = ls())
+
 data = read.csv("data/clean_data/sound_habitat_data_2020.csv", header = TRUE)
+
 ```
 
 ## Summarize each site
@@ -259,6 +259,7 @@ soniferous = test_catch %>%
 
 std_catch_sum = data.frame(pivot_wider(test_catch,id_cols = c(1,3,7:9), 
                                        names_from = "identity",values_from = "std_abund_sum"))
+write.csv(std_catch_sum, "data/clean_data/std_catch_sum.csv")
 
 # need to follow columns here
 # Community metrics summed
