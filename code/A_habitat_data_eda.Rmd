@@ -9,6 +9,7 @@ output: pdf_document
 #knitr::opts_chunk$set(echo = TRUE)
 ```
 
+02/15/2022 Note: reviewed all code, confirmed joins, and replaced most references to hard-coded column numbers
 
 ```{r setup, include=FALSE}
 library(ggplot2)
@@ -28,18 +29,19 @@ data = read.csv("data/clean_data/sound_habitat_data_2020.csv", header = TRUE)
 ## Summarize each site
 - calculate site level average cover (wide and long form)
 - plot percent cover
-- calculate habitat forming species richness, diversity, and eveness
+- calculate habitat forming species richness, diversity, and evenness
 
 ```{r}
 # Average cover by each taxa at site level
-# wide form
+
+# Wide form: for data frame
 site_means = data %>% 
   group_by(deploy_num,site) %>%
   summarise(bare = mean(bare), halodule = mean(halodule), zostera = mean(zostera), 
             ruppia= mean(ruppia), algae = mean(algae), oyster = mean(oyster), saltmarsh = mean(saltmarsh),
             other = mean(other))
 
-#long form
+# Long form: for EDA plots
 siteMean_pc = data.frame(gather(site_means, "identity", "perc_cover", -site, -deploy_num))
 siteMean_pc$identity = factor(siteMean_pc$identity, levels = c("bare","halodule","oyster","saltmarsh",
                                                                "ruppia", "zostera", "algae", "other"))
@@ -53,13 +55,10 @@ ggplot(siteMean_pc, aes(x = perc_cover, y = identity, color = identity))+ theme_
         legend.position = "none")
 
 
-## Benthic species community metrics
-site_means$richness = apply(site_means[,c(4:10)]>0, 1, sum)
-site_means$shannonD = diversity(site_means[,c(4:10)], "shannon")
-site_means$simpsonD = diversity(site_means[,c(4:10)],"simpson")
-#site_means$evenness = site_means$shannonD/log(site_means$richness, base = 10)
+## Benthic species community metrics - excludes algae & other
+site_means$richness = apply(site_means[,c("halodule","zostera","ruppia","saltmarsh","oyster")]>0,1,sum) 
+site_means$shannonD = diversity(site_means[,c("halodule","zostera","ruppia","saltmarsh","oyster")], "shannon")
 site_means$evenness = site_means$shannonD/log(site_means$richness, base = 2)
-
 
 ```
 
@@ -68,15 +67,15 @@ site_means$evenness = site_means$shannonD/log(site_means$richness, base = 2)
 - plot percent cover combined
 
 ```{r}
-data = data %>% mutate(seagrass= halodule+zostera+ruppia)
+data = data %>% mutate(seagrass = halodule+zostera+ruppia)
 
-# wide form
+# Wide form: for data frame
 site_means_comb = data %>% 
   group_by(deploy_num,site) %>%
   summarise(bare = mean(bare), seagrass = mean(seagrass), algae = mean(algae), 
             oyster = mean(oyster), saltmarsh = mean(saltmarsh), other = mean(other))
 
-#long form
+# Long form: for plotting
 siteMean_pc_comb = data.frame(gather(site_means_comb, "identity", "perc_cover", -site, -deploy_num))
 siteMean_pc_comb$identity = factor(siteMean_pc_comb$identity, 
                                    levels = c("bare","seagrass","oyster","saltmarsh","algae","other"))
@@ -89,6 +88,7 @@ ggplot(siteMean_pc_comb, aes(x = perc_cover, y = identity, color = identity))+ t
         axis.text = element_text(size = 12), 
         legend.position = "none")
 
+# Seagrass species specific cover: for plotting
 seagrass_pc = site_means[,c(1,2,4:6)]
 seagrass_pc_long = data.frame(gather(seagrass_pc, "identity", "perc_cover", -site, -deploy_num))
 
@@ -100,11 +100,10 @@ ggplot(seagrass_pc_long, aes(x = perc_cover, y = identity, color = identity))+ t
         axis.text = element_text(size = 12), 
         legend.position = "none")
 
-## Benthic species community metrics
-site_means_comb$richness_comb = apply(site_means_comb[,c(4:8)]>0, 1, sum)
-site_means_comb$shannonD_comb = diversity(site_means[,c(4:8)], "shannon")
-site_means_comb$evenness_comb = site_means$shannonD/log(site_means$richness, base = 2)
-site_means_comb$richness_sso = apply(site_means_comb[,c(4,6,7)]>0,1,sum)
+## Benthic species community metrics - excludes algae & other
+site_means_comb$richness_comb = apply(site_means_comb[,c("seagrass","oyster","saltmarsh")]>0, 1, sum)
+site_means_comb$shannonD_comb = diversity(site_means_comb[,c("seagrass","oyster","saltmarsh")], "shannon")
+site_means_comb$evenness_comb = site_means_comb$shannonD_comb/log(site_means_comb$richness_comb, base = 2)
 
 ```
 
@@ -149,37 +148,36 @@ ggplot(seagrass, aes(x = Site_code, y = Length))+ theme_bw()+
   theme(axis.title = element_text(size = 14), 
         axis.text = element_text(size = 12))
 
-# Calculate mean blade length by transect
-seagrass_summary = seagrass %>%
-  group_by(Date, site, Transect) %>%
-  summarise(mean = mean(Length))
+# # Calculate mean blade length by transect
+# seagrass_summary = seagrass %>%
+#   group_by(Date, site, Transect) %>%
+#   summarise(mean = mean(Length))
+# 
+# # # add max blade length to df - transect
+# # seagrass_summary$max_10 = seagrass_max$mean_10
+# # seagrass_summary$max_25perc = seagrass_max$mean_25percent
 
-# add max blade length to df - transect
-seagrass_summary$max_10 = seagrass_max$mean_10
-seagrass_summary$max_25perc = seagrass_max$mean_25percent
-
-# Seagrass mean and max canopy by site
+# Average blade length by site
 seagrass_site = seagrass %>%
   group_by(Date, site) %>%
   summarise(avg_blade_length = mean(Length))
 
-# Shoot density
+# Average Shoot density by site
 shoot_data = data %>% 
   filter(canopy.sampled == "yes")
 avg_shoot_density = shoot_data %>% 
   group_by(deploy_num, site) %>%
   summarize(avg_shoot_density = mean(shoot.density1_16m2))
 
-### Summarize max canopy by site then add to seagrass_site
-# Calculates site mean by averaging the max of each transect --> this is not how the cover is calculated
-# Do I need to go back and summarize the max canopy by site more generally?
-max_canopy_site = seagrass_summary %>%
+# Summarize max canopy by site
+# Averages the max of each transect (this is not how the cover is calculated)
+max_canopy_site = seagrass_max %>%
   group_by(site) %>%
-  summarise(max_10 = mean(max_10), max_25perc = mean(max_25perc))
-seagrass_site$max_10 = max_canopy_site$max_10
-seagrass_site$max_25perc = max_canopy_site$max_25perc
-
-seagrass_all = right_join(avg_shoot_density,seagrass_site, by = "site")
+  summarize(max10 = mean(mean_10))
+  
+# Put all seagrass summaries together
+seagrass_all = left_join(seagrass_site, avg_shoot_density[,c("site","avg_shoot_density")], by = "site")
+seagrass_all = left_join(seagrass_all, max_canopy_site[,c("site", "max10")], by = "site")
 
 ```
 
@@ -208,37 +206,7 @@ species_list = read.csv("data/metadata/species_list.csv", header = TRUE)
 
 catch_long = left_join(catch_long, species_list[,c(2,4:7)], by = c("identity" = "colnames.spp_data.")) 
 
-# calculating soniferous spp richness
-# this is the value for each - likely want to follow the same method before and use the single summed values
-
-soniferous = catch_long %>%
-  filter(abund > 0)%>%
-  group_by(Project.Site.Name,Tow_number, soniferous)%>%
-  summarize(soniferous_S = n()) %>%
-  filter(soniferous == 'Y')
-
-avg_soniferous = soniferous %>%
-  group_by(Project.Site.Name) %>%
-  summarize(avg_soniferous = mean(soniferous_S))
-
-# Community metrics
-rep_metrics  = std_catch[,c(1:5,8:10)]
-rep_metrics$total_abund = rowSums(std_catch[,11:46])
-rep_metrics$richness = apply(std_catch[,c(11:46)]>0, 1, sum)
-rep_metrics$shannonD = diversity(std_catch[,11:46], "shannon")
-rep_metrics$evenness = rep_metrics$shannonD/log(rep_metrics$richness, base = 2)
-
-# write.csv(rep_metrics, "rep_metrics.csv")
-## Manually converted trawl replicates into rows
-
-rep_metrics = read.csv("data/clean_data/rep_metrics.csv", header = T)
-
-# rep_test = pivot_wider(catch_long, id_cols = 1:10,
-#             names_from = c(Tow_number, identity), 
-#             values_from = std_abund,
-#             names_sep = "_")
-
-# trial for summing trawls - SUCCESS!
+# Sum replicate trawls
 catch_long$Depth_m = as.numeric(catch_long$Depth_m)
 test_catch = catch_long %>%
   group_by(Project.Site.Name, identity) %>%
@@ -261,7 +229,6 @@ std_catch_sum = data.frame(pivot_wider(test_catch,id_cols = c(1,3,7:9),
                                        names_from = "identity",values_from = "std_abund_sum"))
 write.csv(std_catch_sum, "data/clean_data/std_catch_sum.csv")
 
-# need to follow columns here
 # Community metrics summed
 trawl_metrics = std_catch_sum[,c(1:5)]
 trawl_metrics$total_abund_sum = rowSums(std_catch_sum[,6:41])
@@ -269,18 +236,20 @@ trawl_metrics$comm_richness_sum = apply(std_catch_sum[,c(6:41)]>0, 1, sum)
 trawl_metrics$comm_shannonD_sum = diversity(std_catch_sum[,6:41], "shannon")
 trawl_metrics$comm_evenness_sum = trawl_metrics$comm_shannonD_sum/log(trawl_metrics$comm_richness_sum, base = 2)
 
+# Abundance by guild
 guild_abund = test_catch %>%
   group_by(Project.Site.Name,guild) %>%
   summarise(guild_abund = mean(std_abund_sum))
 
 guild_abund = pivot_wider(guild_abund, id_cols = 1, names_from = "guild", values_from = "guild_abund")
 
+# Combine trawl metrics
 trawl_metrics = left_join(trawl_metrics, guild_abund, by = "Project.Site.Name")
-
 trawl_metrics = left_join(trawl_metrics, soniferous, by = "Project.Site.Name")
 trawl_metrics$soniferous[is.na(trawl_metrics$soniferous)] <- "N"
 trawl_metrics$soniferous_S[is.na(trawl_metrics$soniferous_S)] <- 0
 
+# Abundance by Secondary guilds
 guild2_abund = test_catch %>%
   group_by(Project.Site.Name,guild_secondary) %>%
   summarise(guild2_abund = mean(std_abund_sum))
@@ -288,9 +257,7 @@ guild2_abund = test_catch %>%
 guild2_abund = pivot_wider(guild2_abund, id_cols = 1, names_from = "guild_secondary", values_from = "guild2_abund")
 trawl_metrics = left_join(trawl_metrics, guild2_abund, by = "Project.Site.Name")
 
-trawl_metrics = left_join(trawl_metrics, rep_metrics[,c(4,6:19)], by = "Project.Site.Name")
-
-# correct the site code of Mudflat A in Core Sound: MA --> MFA
+# Correct the site code of Mudflat A in Core Sound: MA --> MFA
 trawl_metrics[trawl_metrics == "MA"] = "MFA"
 
 ```
@@ -298,10 +265,7 @@ trawl_metrics[trawl_metrics == "MA"] = "MFA"
 ## Soundscape data
 
 ```{r}
-# need to add site names to this dataframe, they are not in the same order as the habitat variables
-#spl_pmHT = as.data.frame(read.csv("data/clean_data/avg_pmHT_spl_old.csv", header = TRUE))
-#spl_pmHT_dB = cbind(spl_pmHT$site, 10*log10(spl_pmHT[,2:5]))
-
+# Site names added manually
 spl_pmHT = as.data.frame(read.csv("data/clean_data/avg_pmHT_SPL.csv", header = TRUE))
 
 ```
@@ -318,24 +282,42 @@ trawl_metrics = wide form community metrics
 
 ```{r}
 ecometrics = site_means
-ecometrics$seagrass_comb = site_means_comb$seagrass
-ecometrics$richness_comb = site_means_comb$richness_comb
-ecometrics$shannonD_comb = site_means_comb$shannonD_comb
-ecometrics$evenness_comb = site_means_comb$evenness_comb
-#ecometrics$richness_sso = site_means_comb$richness_sso
-ecometrics$totalcover = total_cover$total_cover
-ecometrics = left_join(ecometrics, seagrass_all, by =  "site")
-ecometrics = subset(ecometrics, select = -c(deploy_num.y,Date))
+ecometrics = left_join(ecometrics, site_means_comb[,c("site","seagrass","richness_comb","shannonD_comb","evenness_comb")], 
+                       by = "site")
+ecometrics = left_join(ecometrics, total_cover[,c("site","total_cover", "Habitat")], by = "site")
+ecometrics = left_join(ecometrics, seagrass_all[,c("site","avg_blade_length","avg_shoot_density","max10")], by =  "site")
 
 #create matching habitat variable to join habitat and trawl data
 ecometrics$site_code = c("C7","MF2","SG10","SG12","C2","MF1","SG2","SG4","CB","MFA","SB","SC","C8","MF7","SG6","SG9",
                          "C4","C5","S14","S15","C3","C6","SG1","SG17")
 ecometrics = left_join(ecometrics, trawl_metrics, by = c("site_code"="Project.Site.Name"))
-
 ecometrics = left_join(ecometrics, spl_pmHT, by = c("site_code" = "site"))
 
-# save ecometrics dataframe as csv
+# Convert seagrass canopy NAs to zeros
+ecometrics$avg_blade_length[is.na(ecometrics$avg_blade_length)] = 0
+ecometrics$avg_shoot_density[is.na(ecometrics$avg_shoot_density)] = 0
+ecometrics$max10[is.na(ecometrics$max10)] = 0
+
+
+```
+
+## Save ecometrics dataframes
+
+```{r}
+
 write.csv(ecometrics, "data/clean_data/ecometrics.csv")
+
+# Filter ecometrics to habitat specific data and save
+ecometrics_seagrass = ecometrics %>%
+  filter(Habitat == "Seagrass")
+ecometrics_creek = ecometrics %>%
+  filter(Habitat == "Creek")
+ecometrics_mudflat = ecometrics %>%
+  filter(Habitat == "Mudflat")
+
+write.csv(ecometrics_seagrass, "data/clean_data/ecometricsSeagrass.csv")
+write.csv(ecometrics_creek, "data/clean_data/ecometricsCreek.csv")
+write.csv(ecometrics_mudflat, "data/clean_data/ecometricsMudflat.csv")
 
 ```
 
