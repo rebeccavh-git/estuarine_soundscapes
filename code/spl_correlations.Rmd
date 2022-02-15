@@ -17,39 +17,13 @@ library(GGally)
 library(dplyr)
 library(tidyr)
 
-
 ecometrics = read.csv("data/clean_data/ecometrics.csv")
-#splAvg = read.csv("data/clean_data/avg_pmHT_spl.csv")
-
-BI = read.csv("data/clean_data/bioacousticIndex.csv")
-ecometrics$BI_low = BI$BI_low
-ecometrics$BI_high = BI$BI_high
 
 # make deployment a factor to include as a random effect
 ecometrics$deploy = factor(ecometrics$deploy_num.x)
 
 # correct habitat assignment for Seagrass C
 ecometrics$habitat[ecometrics$site_code == "SC"] = "seagrass"
-
-landscapeMetrics = read.csv("data/clean_data/landscape_metrics.csv", header = TRUE)
-landscapeMetrics = landscapeMetrics %>%
-  mutate(habitat_total = seagrass_area+saltmarsh_area+oyster_area)
-ecometrics = left_join(ecometrics, landscapeMetrics, by = c("site_code" = "site"))
-
-# manually edited nearest_neighbor_results.csv to include site_code
-annMetrics = read.csv("data/raw_data/nearest_neighbor_results.csv", header = TRUE)
-
-
-ecometrics$nnratio = annMetrics$NNratio
-ecometrics$distadj = annMetrics$dist2adjPatch
-ecometrics$land_richness = annMetrics$richness_landscape
-
-# load species specific catch data and filter to species of interest
-std_catch = read.csv("data/clean_data/std_catch_sum.csv")
-ecometrics$silverPerch = std_catch$num_bai_chr
-ecometrics$pigfish = std_catch$num_ort_chr
-
-write.csv(ecometrics, "data/clean_data/ecometrics.csv")
 
 ```
 
@@ -121,9 +95,6 @@ ggpairs(sound_land_area[,])
 #ggpairs(sound_land[,c(1,2,21:30)])
 #ggpairs(sound_land[,c(1,2,31:39)])
 
-
-# Still need to check redundancy and remove
-# lots of correlations with sand & channel - need to consider
 
 # Low Frequency 
 # neg cor: seagrass core area
@@ -306,15 +277,7 @@ cor(ecometrics$oyster_area, ecometrics$avg_spl_high, method = "pearson")
 
 
 
-
-
-
-
-
-
-
-
-### END HERER FOR NOW!
+#### END HERER FOR NOW!
 
 ## Build model to explore variation in SPL
 

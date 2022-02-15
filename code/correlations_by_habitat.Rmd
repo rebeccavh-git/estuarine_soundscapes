@@ -26,8 +26,6 @@ metrics = read.csv("data/clean_data/ecometrics.csv")
 
 # Remove replicate trawls for simplicity
 
-metrics = metrics %>%
-  select(-contains(c("X1","X2","sand", "channel","land","shape","mudflat")))
 
 
 ```
