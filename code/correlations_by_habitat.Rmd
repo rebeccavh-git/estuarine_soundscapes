@@ -22,10 +22,113 @@ library(tidyr)
 
 ```{r}
 
-metrics = read.csv("data/clean_data/ecometrics.csv")
+metricsSG = read.csv("data/clean_data/ecometricsSeagrass.csv")
+metricsC = read.csv("data/clean_data/ecometricsCreek.csv")
+metricsM = read.csv("data/clean_data/ecometricsMudflat.csv")
+ecometrics = read.csv("data/clean_data/ecometrics.csv")
 
-# Remove replicate trawls for simplicity
+```
 
+## Explore grouping by habitat type
+
+```{r}
+# SPL by Habitat
+ggplot(data = ecometrics, aes(x = habitat, y = avg_spl_low))+ theme_bw()+
+  geom_boxplot()
+
+splbyhabitat = lm(avg_spl_low ~ habitat, data = ecometrics)
+summary(splbyhabitat)
+SPLbyHabAOV = aov(splbyhabitat)
+TukeyHSD(SPLbyHabAOV)
+
+ggplot(data = ecometrics, aes(x = habitat, y = avg_spl_high))+ theme_bw()+
+  geom_boxplot()
+
+# SPL by nearest adj habitat type (landscape) 
+ggplot(data = metricsSG, aes(x = adj_hab_type, y = avg_spl_low))+ theme_bw()+
+  geom_boxplot()
+
+ggplot(data = metricsSG, aes(x = adj_hab_type, y = avg_spl_high))+ theme_bw()+
+  geom_boxplot()
+
+ggplot(data = metricsC, aes(x = adj_hab_type, y = avg_spl_low))+ theme_bw()+
+  geom_boxplot()
+
+ggplot(data = metricsC, aes(x = adj_hab_type, y = avg_spl_high))+ theme_bw()+
+  geom_boxplot()
+
+ggplot(data = metricsM, aes(x = adj_hab_type, y = avg_spl_low))+ theme_bw()+
+  geom_boxplot()
+
+ggplot(data = metricsM, aes(x = adj_hab_type, y = avg_spl_high))+ theme_bw()+
+  geom_boxplot()
+
+# SPL by distance to adjacent habitat patch (landscape) 
+ggplot(data = metricsSG, aes(x = dist2adjPatch, y = avg_spl_low))+ theme_bw()+
+  geom_point()
+
+ggplot(data = metricsSG, aes(x = dist2adjPatch, y = avg_spl_high))+ theme_bw()+
+  geom_point()
+
+ggplot(data = metricsC, aes(x = dist2adjPatch, y = avg_spl_low))+ theme_bw()+
+  geom_point()
+
+ggplot(data = metricsC, aes(x = dist2adjPatch, y = avg_spl_high))+ theme_bw()+
+  geom_point()
+
+ggplot(data = metricsM, aes(x = dist2adjPatch, y = avg_spl_low))+ theme_bw()+
+  geom_point()
+cor(metricsM$dist2adjPatch, metricsM$avg_spl_low)
+
+ggplot(data = metricsM, aes(x = dist2adjPatch, y = avg_spl_high))+ theme_bw()+
+  geom_point()
+cor(metricsM$dist2adjPatch, metricsM$avg_spl_high)
+
+
+# Total catch by habitat
+ggplot(data = ecometrics, aes(x = habitat, y = total_abund_sum))+ theme_bw()+
+  geom_boxplot()
+
+
+
+```
+
+## Remove non-numeric columns for correlations
+
+```{r}
+
+metricsSG_num = metricsSG %>%
+  select(-X, -deploy_num, -site, -bare, -Habitat, -site_code, -habitat, -soniferous, -index, -total_hab_area, -adj_hab_type)
+
+metricsC_num = metricsC %>%
+  select(-X, -deploy_num, -site, -bare, -Habitat, -site_code, -habitat, -soniferous, -index, -total_hab_area, -adj_hab_type)
+
+metricsM_num = metricsM %>%
+  select(-X, -deploy_num, -site, -bare, -Habitat, -site_code, -habitat, -soniferous, -index, -total_hab_area, -adj_hab_type)
+
+```
+
+## Seagrass only: correlations
+
+```{r}
+
+CorSeagrass = cor(metricsSG_num, method = "pearson", use = "everything")
+write.csv(CorSeagrass, "data/clean_data/CorrelationSeagrass.csv")
+
+# retain avg-temp, but note that it is correlated with avg_blade_length
+# retain depth, but note it is correlated with NNRatio
+
+
+
+# add label for position within seagrass bed - within, adjacent, other? 
+STposition = read.csv("data/metadata/hydrophone_seagrass_position.csv")
+metricsSG = left_join(metricsSG, STposition, by = "site_code")
+
+ggplot(data = metricsSG, aes(x = position, y = avg_spl_low))+ theme_bw()+
+  geom_boxplot()
+
+SPLbySTposition = lm(avg_spl_low ~ position, data = metricsSG)
+TukeyHSD(aov(SPLbySTposition))
 
 
 ```

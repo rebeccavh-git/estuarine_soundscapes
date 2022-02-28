@@ -277,6 +277,14 @@ annMetrics = read.csv("data/raw_data/nearest_neighbor_results.csv", header = TRU
 
 ```
 
+## Temperature data
+
+```{r}
+
+tempST = read.csv("data/clean_data/pmHT_tempAvg.csv", header = TRUE)
+
+```
+
 ## Soundscape data
 
 ```{r}
@@ -304,6 +312,7 @@ ecometrics = left_join(ecometrics, trawl_metrics, by = c("site_code"="Project.Si
 
 ecometrics = left_join(ecometrics, landscapeMetrics, by = c("site_code" = "site"))
 ecometrics = left_join(ecometrics, annMetrics[,c("site_code","NNratio","dist2adjPatch","adj_hab_type","richness_landscape")], by = "site_code")
+ecometrics = left_join(ecometrics, tempST, by = "site_code")
 ecometrics = left_join(ecometrics, spl_pmHT, by = c("site_code" = "site"))
 ecometrics = left_join(ecometrics, BI, by = "site_code")
 
@@ -311,6 +320,10 @@ ecometrics = left_join(ecometrics, BI, by = "site_code")
 ecometrics$avg_blade_length[is.na(ecometrics$avg_blade_length)] = 0
 ecometrics$avg_shoot_density[is.na(ecometrics$avg_shoot_density)] = 0
 ecometrics$max10[is.na(ecometrics$max10)] = 0
+
+# remove temperature from trawl data
+ecometrics = ecometrics %>%
+  select(-temp_avg)
 
 ```
 

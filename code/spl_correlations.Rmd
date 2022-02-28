@@ -17,15 +17,40 @@ library(GGally)
 library(dplyr)
 library(tidyr)
 
-ecometrics = read.csv("data/clean_data/ecometrics.csv")
+ecometrics = read.csv("data/clean_data/ecometrics.csv", header = TRUE)
 
 # make deployment a factor to include as a random effect
-ecometrics$deploy = factor(ecometrics$deploy_num.x)
-
-# correct habitat assignment for Seagrass C
-ecometrics$habitat[ecometrics$site_code == "SC"] = "seagrass"
+ecometrics$deploy_num = factor(ecometrics$deploy_num)
 
 ```
+
+## Updated code: Evaluate correlations among all metrics
+
+```{r}
+
+# Create new dataframe with only numeric metrics (remove id/character columns)
+ecometrics_num = ecometrics %>%
+  select(-X, -deploy_num, -site, -bare, -Habitat, -site_code, -habitat, -soniferous, -index, -total_hab_area, -adj_hab_type)
+
+metricCorrComplete = cor(ecometrics_num, use = "complete.obs", method = "pearson")
+metricCorrEverything = cor(ecometrics_num, use = "everything", method = "pearson")
+
+# save both methods and compare output
+write.csv(metricCorrComplete, "data/clean_data/metricCorrComplete.csv")
+write.csv(metricCorrEverything, "data/clean_data/metricCorrEverything.csv")
+
+ecometrics_Complete = ecometrics_num %>%
+  select(halodule, oyster, saltmarsh, total_cover, depth_m_avg, sal_avg, comm_evenness_sum, omnivore,
+         num_bai_chr, num_ort_chr, seagrass_area, oyster_core.area, oyster_perim.area.ratio, habitat_total, 
+         dist2adjPatch, richness_landscape, avg_temp, avg_spl_low, avg_spl_high, BI_low, BI_high)
+
+ecometrics_Everything = ecometrics_num %>%
+  select()
+
+
+
+```
+
 
 ## Explore correlations:
 1. Examine correlation within habitat/community metrics and remove redundant variables (corr > 0.7)
@@ -33,77 +58,77 @@ ecometrics$habitat[ecometrics$site_code == "SC"] = "seagrass"
 
 Start with habitat then community to reduce the number of correlations viewing at a single time
 ```{r}
-ecometrics_1 = ecometrics[,c(5:24,27:36,38:65,71:107)]
-ecometrics_1 = as.data.frame(sapply(ecometrics_1, as.numeric))
-metricClass = lapply(ecometrics_1, class)
-
-MetricCorrAll = cor(ecometrics_1, use = "complete.obs")
-write.csv(MetricCorrAll, "data/raw_data/metricCorrAll.csv")
-
-# HABITAT
-# possibly need to remove oyster due to correlation with oyster area (landscape)
-sound_hab = ecometrics %>%
-  select(site, habitat, totalcover, oyster, saltmarsh, evenness,
-         avg_shoot_density, avg_blade_length,
-        avg_spl_low, avg_spl_high)
-
-ggpairs(sound_hab[,3:10])
-
-# COMMUNITY
-sound_com = ecometrics %>%
-  select(site, habitat, depth_m_avg, sal_avg, total_abund_sum, comm_richness_sum, comm_evenness_sum, 
-          herbivore, omnivore, detritivore, piscivore, avg_spl_low, avg_spl_high)
-
-#sound_com$log_abund = log10(sound_com$total_abund_sum)
-#plot(sound_com$total_abund_sum)
-
-ggpairs(sound_com[,3:13])
-
-## only piscivore was interesting
-# sound_trophic = ecometrics %>%
-#   select(site, habitat, carnivore, piscivore, planktivore, 
-#          avg_spl_low, avg_spl_high)
+# ecometrics_1 = ecometrics[,c(5:24,27:36,38:65,71:107)]
+# ecometrics_1 = as.data.frame(sapply(ecometrics_1, as.numeric))
+# metricClass = lapply(ecometrics_1, class)
 # 
-# ggpairs(sound_trophic[,3:7])
-
-```
-
-## Landscape metrics
-
-```{r}
-
-sound_land = ecometrics %>%
-  select(avg_spl_low, avg_spl_high)#, BI_low, BI_high
-sound_land = ecometrics[,c(60:104)]
-sound_land = sound_land[,c(1,4,9:45)]
-
-sound_land_area = sound_land %>%
-  select(avg_spl_low, avg_spl_high, seagrass_area, saltmarsh_area, mudflat_area, oyster_area)
-
-ggpairs(sound_land_area[,])
-# saltmarsh area and oyster area are highly correlated - which one to choose??
-
-sound_land_area = sound_land_area %>%
-  select(-saltmarsh_area)
-ggpairs(sound_land_area[,])
-
-# low frequency: saltmarsh area (land), 
-# high frequency: saltmarsh area (land)
-
-#ggpairs(sound_land[,c(1:10)])
-#ggpairs(sound_land[,c(1,2,11:20)])
-#ggpairs(sound_land[,c(1,2,21:30)])
-#ggpairs(sound_land[,c(1,2,31:39)])
-
-
-# Low Frequency 
-# neg cor: seagrass core area
-# pos cor: saltmarsh area, saltmarsh core area, saltmarsh perimeter, oyster area, oyster core area, oyster perimeter, oyster perim/area ratio, oyster shape, habitat total
-
-# High Frequency
-# neg cor: 
-# pos cor: seagrass perimeter, seagrass shape index, saltmarsh area, saltmarsh core, oyster area, oyster core, oyster perimeter, oyster shape, habitat total
-
+# MetricCorrAll = cor(ecometrics_1, use = "complete.obs")
+# write.csv(MetricCorrAll, "data/raw_data/metricCorrAll.csv")
+# 
+# # HABITAT
+# # possibly need to remove oyster due to correlation with oyster area (landscape)
+# sound_hab = ecometrics %>%
+#   select(site, habitat, totalcover, oyster, saltmarsh, evenness,
+#          avg_shoot_density, avg_blade_length,
+#         avg_spl_low, avg_spl_high)
+# 
+# ggpairs(sound_hab[,3:10])
+# 
+# # COMMUNITY
+# sound_com = ecometrics %>%
+#   select(site, habitat, depth_m_avg, sal_avg, total_abund_sum, comm_richness_sum, comm_evenness_sum, 
+#           herbivore, omnivore, detritivore, piscivore, avg_spl_low, avg_spl_high)
+# 
+# #sound_com$log_abund = log10(sound_com$total_abund_sum)
+# #plot(sound_com$total_abund_sum)
+# 
+# ggpairs(sound_com[,3:13])
+# 
+# ## only piscivore was interesting
+# # sound_trophic = ecometrics %>%
+# #   select(site, habitat, carnivore, piscivore, planktivore, 
+# #          avg_spl_low, avg_spl_high)
+# # 
+# # ggpairs(sound_trophic[,3:7])
+# 
+# ```
+# 
+# ## Landscape metrics
+# 
+# ```{r}
+# 
+# sound_land = ecometrics %>%
+#   select(avg_spl_low, avg_spl_high)#, BI_low, BI_high
+# sound_land = ecometrics[,c(60:104)]
+# sound_land = sound_land[,c(1,4,9:45)]
+# 
+# sound_land_area = sound_land %>%
+#   select(avg_spl_low, avg_spl_high, seagrass_area, saltmarsh_area, mudflat_area, oyster_area)
+# 
+# ggpairs(sound_land_area[,])
+# # saltmarsh area and oyster area are highly correlated - which one to choose??
+# 
+# sound_land_area = sound_land_area %>%
+#   select(-saltmarsh_area)
+# ggpairs(sound_land_area[,])
+# 
+# # low frequency: saltmarsh area (land), 
+# # high frequency: saltmarsh area (land)
+# 
+# #ggpairs(sound_land[,c(1:10)])
+# #ggpairs(sound_land[,c(1,2,11:20)])
+# #ggpairs(sound_land[,c(1,2,21:30)])
+# #ggpairs(sound_land[,c(1,2,31:39)])
+# 
+# 
+# # Low Frequency 
+# # neg cor: seagrass core area
+# # pos cor: saltmarsh area, saltmarsh core area, saltmarsh perimeter, oyster area, oyster core area, oyster perimeter, oyster perim/area ratio, oyster shape, habitat total
+# 
+# # High Frequency
+# # neg cor: 
+# # pos cor: seagrass perimeter, seagrass shape index, saltmarsh area, saltmarsh core, oyster area, oyster core, oyster perimeter, oyster shape, habitat total
+# 
 
 ```
 
