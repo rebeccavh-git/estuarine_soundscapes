@@ -34,6 +34,7 @@ ecometrics_num = ecometrics %>%
 
 metricCorrComplete = cor(ecometrics_num, use = "complete.obs", method = "pearson")
 metricCorrEverything = cor(ecometrics_num, use = "everything", method = "pearson")
+metricCorrSpearman = cor(ecometrics_num, method = "spearman")
 
 # save both methods and compare output
 write.csv(metricCorrComplete, "data/clean_data/metricCorrComplete.csv")

@@ -59,46 +59,51 @@ ggplot(aes(x = NMDS1, y = NMDS2), data = nmdsScores)+ theme_bw()+
 
 ## Add Environmental Vector
 
+This is old code from before ecometrics included ALL metrics (hab,comm,land,nn)
+
+- Need to finalize removing correlated ecometric variables then inlcude all candidate ecometrics in the nmds plot
+
 ```{r}
-env_data = read.csv("data/clean_data/env_metrics.csv", header = TRUE)
 
 # loading all metrics - should clarify code after this
 ecometrics = read.csv("data/clean_data/ecometrics.csv")
 
-community = ecometrics[,c(27:45)]
-
-# Landscape metrics
-landscape_data = read.csv("data/clean_data/landscape_metrics.csv", header = TRUE)
-landscape_data = landscape_data %>%
-  mutate(habitat_total = seagrass_area+saltmarsh_area+oyster_area)
-landscape_data = landscape_data %>%
-  select(-contains('Sand'), -contains('channel'),-contains('mudflat'), -contains("land"),-contains("total_hab"))
-landscape_cor = cor(landscape_data[,c(3:18)])
-# checks correlation withing landscape data and keeps only non-correlated metrics
-landscape_filt = landscape_data %>%
-  select(seagrass_area, seagrass_perim.area.ratio, seagrass_shape.index, saltmarsh_area, saltmarsh_perim.area.ratio,
-         saltmarsh_shape.index, oyster_area, oyster_perim.area.ratio)
-
-env_data = cbind(env_data, landscape_filt)
-
- # Nearest neighbor: 
-neighbor_data = read.csv("data/raw_data/nearest_neighbor_results.csv", header = TRUE)
-
-env_data$nn_Land = neighbor_data$NNratio
-env_data$dist2adj = neighbor_data$dist2adjPatch
-env_data$richness_land = neighbor_data$richness_landscape # -0.8 corr with dis2adj patch
-
-env_cor = cor(env_data[,c(4:34)], use = "pairwise.complete.obs")
-write.csv(env_cor,"data/clean_data/nmds_env_cor.csv")
-
-# Went through the correlation matrix and identified correlated variables to remove.
-env_filt = env_data %>%
-  select(halodule, zostera, ruppia, algae, oyster, saltmarsh, other, richness, evenness, seagrass_area, seagrass_perim.area.ratio,
-         seagrass_shape.index, saltmarsh_area, saltmarsh_perim.area.ratio, nn_Land, richness_land)
-
-# need to assess normality and consider transformations
-# convert to z-scores?
-#env_zscores = as.data.frame(sapply(env_filt, function(env_filt) (env_filt-mean(env_filt))/sd(env_filt)))
+# env_data = read.csv("data/clean_data/env_metrics.csv", header = TRUE)
+# 
+# # community = ecometrics[,c(27:45)]
+# 
+# # Landscape metrics
+# landscape_data = read.csv("data/clean_data/landscape_metrics.csv", header = TRUE)
+# landscape_data = landscape_data %>%
+#   mutate(habitat_total = seagrass_area+saltmarsh_area+oyster_area)
+# landscape_data = landscape_data %>%
+#   select(-contains('Sand'), -contains('channel'),-contains('mudflat'), -contains("land"),-contains("total_hab"))
+# landscape_cor = cor(landscape_data[,c(3:18)])
+# # checks correlation withing landscape data and keeps only non-correlated metrics
+# landscape_filt = landscape_data %>%
+#   select(seagrass_area, seagrass_perim.area.ratio, seagrass_shape.index, saltmarsh_area, saltmarsh_perim.area.ratio,
+#          saltmarsh_shape.index, oyster_area, oyster_perim.area.ratio)
+# 
+# env_data = cbind(env_data, landscape_filt)
+# 
+#  # Nearest neighbor: 
+# neighbor_data = read.csv("data/raw_data/nearest_neighbor_results.csv", header = TRUE)
+# 
+# env_data$nn_Land = neighbor_data$NNratio
+# env_data$dist2adj = neighbor_data$dist2adjPatch
+# env_data$richness_land = neighbor_data$richness_landscape # -0.8 corr with dis2adj patch
+# 
+# env_cor = cor(env_data[,c(4:34)], use = "pairwise.complete.obs")
+# write.csv(env_cor,"data/clean_data/nmds_env_cor.csv")
+# 
+# # Went through the correlation matrix and identified correlated variables to remove.
+# env_filt = env_data %>%
+#   select(halodule, zostera, ruppia, algae, oyster, saltmarsh, other, richness, evenness, seagrass_area, seagrass_perim.area.ratio,
+#          seagrass_shape.index, saltmarsh_area, saltmarsh_perim.area.ratio, nn_Land, richness_land)
+# 
+# # need to assess normality and consider transformations
+# # convert to z-scores?
+# #env_zscores = as.data.frame(sapply(env_filt, function(env_filt) (env_filt-mean(env_filt))/sd(env_filt)))
 
 
 #test with vegan envfit
@@ -201,6 +206,9 @@ summary(sdf_agnes)
 
 
 ```
+
+#### TEST CODE for within habitat variation
+
 
 ## NMDS site average - within habitat variation
 - Seagrass: nothing immediately interesting at first glance. No real grouping. 

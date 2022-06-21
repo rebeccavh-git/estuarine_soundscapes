@@ -294,6 +294,9 @@ spl_pmHT = as.data.frame(read.csv("data/clean_data/avg_pmHT_SPL.csv", header = T
 # Add bioacoustic index 
 BI = read.csv("data/clean_data/bioacousticIndex.csv")
 
+# Toadfish call rates
+toadfish = read.csv("data/clean_data/ToadfishCallRate.csv")
+
 ```
 
 ## Putting it together
@@ -346,4 +349,17 @@ write.csv(ecometrics_creek, "data/clean_data/ecometricsCreek.csv")
 write.csv(ecometrics_mudflat, "data/clean_data/ecometricsMudflat.csv")
 
 ```
+
+## Identify correlated ecometrics and save filtered ecometrics dataframe
+- this is ecometrics with all habitats included
+
+```{r}
+
+
+
+
+
+
+```
+
 
