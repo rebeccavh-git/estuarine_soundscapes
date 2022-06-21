@@ -291,12 +291,11 @@ tempST = read.csv("data/clean_data/pmHT_tempAvg.csv", header = TRUE)
 # Site names added manually
 spl_pmHT = as.data.frame(read.csv("data/clean_data/avg_pmHT_SPL.csv", header = TRUE))
 
-# Add bioacoustic index 
-BI = read.csv("data/clean_data/bioacousticIndex.csv")
-
 # Toadfish call rates
 toadfish = read.csv("data/clean_data/ToadfishCallRate.csv")
 
+# # Add bioacoustic index 
+# BI = read.csv("data/clean_data/bioacousticIndex.csv")
 ```
 
 ## Putting it together
@@ -317,16 +316,23 @@ ecometrics = left_join(ecometrics, landscapeMetrics, by = c("site_code" = "site"
 ecometrics = left_join(ecometrics, annMetrics[,c("site_code","NNratio","dist2adjPatch","adj_hab_type","richness_landscape")], by = "site_code")
 ecometrics = left_join(ecometrics, tempST, by = "site_code")
 ecometrics = left_join(ecometrics, spl_pmHT, by = c("site_code" = "site"))
-ecometrics = left_join(ecometrics, BI, by = "site_code")
+ecometrics = left_join(ecometrics, toadfish, by = c("site_code" = "Site"))
 
 # Convert seagrass canopy NAs to zeros
 ecometrics$avg_blade_length[is.na(ecometrics$avg_blade_length)] = 0
 ecometrics$avg_shoot_density[is.na(ecometrics$avg_shoot_density)] = 0
 ecometrics$max10[is.na(ecometrics$max10)] = 0
 
+ecometrics$ToadCallRate[is.na(ecometrics$ToadCallRate)] = 0
+
 # remove temperature from trawl data
 ecometrics = ecometrics %>%
   select(-temp_avg)
+
+# include average depth and salinity for 2 sites with missing data
+ecometrics$depth_m_avg[is.na(ecometrics$depth_m_avg)] = mean(ecometrics$depth_m_avg, na.rm = TRUE)
+ecometrics$sal_avg[is.na(ecometrics$sal_avg)] = mean(ecometrics$sal_avg, na.rm = TRUE)
+
 
 ```
 
@@ -350,16 +356,6 @@ write.csv(ecometrics_mudflat, "data/clean_data/ecometricsMudflat.csv")
 
 ```
 
-## Identify correlated ecometrics and save filtered ecometrics dataframe
-- this is ecometrics with all habitats included
 
-```{r}
-
-
-
-
-
-
-```
 
 
