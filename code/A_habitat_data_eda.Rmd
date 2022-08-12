@@ -186,6 +186,19 @@ seagrass_all = left_join(seagrass_all, max_canopy_site[,c("site", "max10")], by 
 ```{r}
 trawl = read.csv("data/raw_data/trawl/summer_trawl_data_2019.csv", header = TRUE)
 
+#trawl summary
+tow_time = mean(trawl$Duration_min_sec)
+tow_timeSD = sd(trawl$Duration_min_sec)
+tow_speed = mean(trawl$Speed_km_hr)
+tow_speedSD = sd(trawl$Speed_km_hr)
+
+trawl$Depth_m[43] = 1
+trawl$Depth_m = as.numeric(trawl$Depth_m)
+tow_depthMin = min(trawl$Depth_m)
+tow_depthMax = max(trawl$Depth_m)
+tow_depth = mean(trawl$Depth_m)
+
+# catch summary
 catch_data = data.frame(trawl[,c(1,3:5,7,13:17,19:67)])
 spp_data = catch_data[,11:59]
 spp_data[is.na(spp_data)] = 0

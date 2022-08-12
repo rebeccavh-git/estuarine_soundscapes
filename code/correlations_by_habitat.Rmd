@@ -44,37 +44,47 @@ TukeyHSD(SPLbyHabAOV)
 ggplot(data = ecometrics, aes(x = habitat, y = avg_spl_high))+ theme_bw()+
   geom_boxplot()
 
-# SPL by nearest adj habitat type (landscape) 
-ggplot(data = metricsSG, aes(x = adj_hab_type, y = avg_spl_low))+ theme_bw()+
-  geom_boxplot()
+splHbyhabitat = lm(avg_spl_high ~ habitat, data = ecometrics)
+summary(splbyhabitat)
+SPLHbyHabAOV = aov(splHbyhabitat)
+TukeyHSD(SPLHbyHabAOV)
 
-ggplot(data = metricsSG, aes(x = adj_hab_type, y = avg_spl_high))+ theme_bw()+
-  geom_boxplot()
 
-ggplot(data = metricsC, aes(x = adj_hab_type, y = avg_spl_low))+ theme_bw()+
-  geom_boxplot()
-
-ggplot(data = metricsC, aes(x = adj_hab_type, y = avg_spl_high))+ theme_bw()+
-  geom_boxplot()
-
-ggplot(data = metricsM, aes(x = adj_hab_type, y = avg_spl_low))+ theme_bw()+
-  geom_boxplot()
-
-ggplot(data = metricsM, aes(x = adj_hab_type, y = avg_spl_high))+ theme_bw()+
-  geom_boxplot()
+# # SPL by nearest adj habitat type (landscape) 
+# ggplot(data = metricsSG, aes(x = adj_hab_type, y = avg_spl_low))+ theme_bw()+
+#   geom_boxplot()
+# 
+# ggplot(data = metricsSG, aes(x = adj_hab_type, y = avg_spl_high))+ theme_bw()+
+#   geom_boxplot()
+# 
+# ggplot(data = metricsC, aes(x = adj_hab_type, y = avg_spl_low))+ theme_bw()+
+#   geom_boxplot()
+# 
+# ggplot(data = metricsC, aes(x = adj_hab_type, y = avg_spl_high))+ theme_bw()+
+#   geom_boxplot()
+# 
+# ggplot(data = metricsM, aes(x = adj_hab_type, y = avg_spl_low))+ theme_bw()+
+#   geom_boxplot()
+# 
+# ggplot(data = metricsM, aes(x = adj_hab_type, y = avg_spl_high))+ theme_bw()+
+#   geom_boxplot()
 
 # SPL by distance to adjacent habitat patch (landscape) 
-ggplot(data = metricsSG, aes(x = dist2adjPatch, y = avg_spl_low))+ theme_bw()+
-  geom_point()
-
-ggplot(data = metricsSG, aes(x = dist2adjPatch, y = avg_spl_high))+ theme_bw()+
-  geom_point()
+# ggplot(data = metricsSG, aes(x = dist2adjPatch, y = avg_spl_low))+ theme_bw()+
+#   geom_point()
+# cor(metricsSG$dist2adjPatch,metricsSG$avg_spl_low)
+# 
+# ggplot(data = metricsSG, aes(x = dist2adjPatch, y = avg_spl_high))+ theme_bw()+
+#   geom_point()
+# cor(metricsSG$dist2adjPatch,metricsSG$avg_spl_high)
 
 ggplot(data = metricsC, aes(x = dist2adjPatch, y = avg_spl_low))+ theme_bw()+
   geom_point()
+cor(metricsC$dist2adjPatch,metricsC$avg_spl_low)
 
-ggplot(data = metricsC, aes(x = dist2adjPatch, y = avg_spl_high))+ theme_bw()+
-  geom_point()
+# ggplot(data = metricsC, aes(x = dist2adjPatch, y = avg_spl_high))+ theme_bw()+
+#   geom_point()
+# cor(metricsSG$dist2adjPatch,metricsSG$avg_spl_high)
 
 ggplot(data = metricsM, aes(x = dist2adjPatch, y = avg_spl_low))+ theme_bw()+
   geom_point()
@@ -121,39 +131,82 @@ metricsM_num = metricsM %>%
 ## Seagrass only: correlations
 
 ```{r}
-
 CorSeagrass = as.data.frame(cor(metricsSG_num, method = "pearson", use = "everything"))
 write.csv(CorSeagrass, "data/clean_data/CorrelationSeagrass.csv")
 
-# retain avg-temp, but note that it is correlated with avg_blade_length
-# retain depth, but note it is correlated with NNRatio
 metricsSG$deploy_num = factor(metricsSG$deploy_num)
 
+# seagrassFiltered = read.csv("data/clean_data/CorrelationSeagrass_noRedundant.csv")
+# metricsSG_Filt = metricsSG_num %>%
+#   select(all_of(colnames(seagrassFiltered[,-1])))
+```
+
+# SPL Low
+
+Need to review these correlations and make decisions before summarizing
+# retain ruppia, but correlated with num_ort_chr and habitat total
+# retain num_bai_chr but corr. w/ num_ort_chr & num_ops_tau
+# seagrass_area is correlated with habitat_total, num_bai_chr & num_ort_chr
+
+```{r}
 # Covariates of interest:
+halodule
+zostera
+habitat_total
+saltmarsh_area
+num_ort_chr 
+planktivore
+piscivore
+omni_2
+avg_temp
 
-ggplot(aes(halodule, avg_spl_low), data = metricsSG)+ theme_bw()+
-  geom_point()
+# covariates of interest with redundant correlations
+# ruppia - likely remove (cor w/ num_ort_chr & habitat_total)
+# num_bai_chr # cor with num_ort_chr & num_ops_tau
+# num_ops_tau - likely remove (low sample size and correlations)
 
-ggplot(aes(zostera, avg_spl_low), data = metricsSG)+ theme_bw()+
-  geom_point()
+# Example fig to replicate
+halodule = ggplot(aes(x = halodule, y = avg_spl_low),data = ecometrics)+ theme_bw()+
+  geom_point(aes(color = habitat))+
+  geom_smooth(method = "lm", formula = 'y ~x', se = FALSE, color = "black")+
+  xlab("Halodule cover")+
+  ylab("Average SPL (dB re 1 uPa)")+
+  theme(axis.title = element_text(size = 16), 
+        axis.text = element_text(size = 14),
+        legend.position = "none")
+cor(ecometrics$halodule, ecometrics$avg_spl_low, method = "pearson")
 
-ggplot(aes(num_bai_chr, avg_spl_low), data = metricsSG)+ theme_bw()+
-  geom_point()
+```
 
-# cant use 1 data point
-ggplot(aes(num_ops_tau, avg_spl_low), data = metricsSG)+ theme_bw()+
-  geom_point()
+## SPL High
 
-ggplot(aes(, avg_spl_low), data = metricsSG)+ theme_bw()+
-  geom_point()
-ggplot(aes(, avg_spl_low), data = metricsSG)+ theme_bw()+
-  geom_point()
-ggplot(aes(, avg_spl_low), data = metricsSG)+ theme_bw()+
-  geom_point()
+```{r}
 
+zostera
+oyster_area
+saltmarsh_area
+soniferous_S
+comm_evenness_sum
+piscivore
+omni_2
+sal_avg
+avg_temp
+depth_m_avg
 
+```
 
+# Toadfish
 
+```{r}
+
+avg_shoot_density
+oyster_area
+richness_landscape
+comm_evenness_sum
+soniferous_S
+omni_2
+total_abund_sum
+sal_avg
 
 ```
 

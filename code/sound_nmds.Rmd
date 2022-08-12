@@ -58,7 +58,6 @@ ggplot(aes(x = NMDS1, y = NMDS2), data = nmdsScores)+ theme_bw()+
 ```
 
 ## Add environmental vectors - new
-The order of sites for env data is different than the sound - change the env_data frame to match
 
 ```{r}
 
@@ -95,6 +94,7 @@ ggplot(aes(x = NMDS1, y = NMDS2), data = nmdsScores)+ theme_bw()+
 
 # nmds with only significant env vectors (a <0.1)
 # ruppia, oyster, richness, evenness, comm_shannonD, num_ort_chr, seagrass area
+# removing algae due to concern of inconsistent measurement and very small cover values
 envScoresSig = envScores[c(1,5,7,20),]
 ggplot(aes(x = NMDS1, y = NMDS2), data = nmdsScores)+ theme_bw()+
   geom_point(size = 3, aes(color = habitat, shape = deploy))+

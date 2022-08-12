@@ -16,6 +16,8 @@ library(ggplot2)
 library(GGally)
 library(dplyr)
 library(tidyr)
+library(gridExtra)
+library(MuMIn)
 
 ecometrics = read.csv("data/clean_data/ecometrics.csv", header = TRUE)
 
@@ -29,6 +31,7 @@ ecometrics$deploy_num = factor(ecometrics$deploy_num)
 ```{r}
 
 # Create new dataframe with only numeric metrics (remove id/character columns)
+# last minute thought to include deploy_num, but it is correlated with temperature (r = 0.66), so no need
 ecometrics_num = ecometrics %>%
   select(-X, -deploy_num, -site, -bare, -Habitat, -site_code, -habitat, -soniferous, -index, -total_hab_area, -adj_hab_type)
 
@@ -44,11 +47,9 @@ ecometricsLong = ecometrics_num %>%
 
 # Correlations
 metricCorrEverything = cor(ecometrics_num, use = "everything", method = "pearson")
-metricCorrSpearman = as.data.frame(cor(ecometrics_num, use = "everything", method = "spearman"))
 
 # save both methods and compare output
-write.csv(metricCorrEverything, "data/clean_data/metricCorrEverything.csv")
-write.csv(metricCorrSpearman, "data/clean_data/metricCorrSpearman.csv")
+# write.csv(metricCorrEverything, "data/clean_data/metricCorrEverything.csv")
 
 
 ```
@@ -63,117 +64,326 @@ metricCorFilt = read.csv("data/clean_data/metricCorr_everythingFiltered.csv")
 ecometricsFilt = ecometrics_num %>%
   select(all_of(colnames(metricCorFilt[,-1])))
 
-write.csv(ecometricsFilt, "data/clean_data/ecometricsFiltered.csv")
+#write.csv(ecometricsFilt, "data/clean_data/ecometricsFiltered.csv")
 
 # Retained seagrass and species densities even though they are correlated with halodule
-
+# decided to remove algae because percent cover was so low and don't feel confident it was consistently measured - so removing to avoid reporting spurious results
 ```
 
 ## Correlations with sound metrics
 
 ```{r}
-
-soundCor = as.data.frame(metricCorFilt[c(27:30),c(2:27)])
-rownames(soundCor) = c("avg_spl_low","avg_spl_high","ToadCallRate","ToadCallRateNorm")
-
-soundCor = as.data.frame(t(soundCor))
-
+# soundCor = as.data.frame(metricCorFilt[c(27:30),c(2:27)])
+# rownames(soundCor) = c("avg_spl_low","avg_spl_high","ToadCallRate","ToadCallRateNorm")
+# 
+# soundCor = as.data.frame(t(soundCor))
+```
 
 # SPL Low
 
+```{r}
 # halodule
-ggplot(aes(x = halodule, y = avg_spl_low),data = ecometrics)+ theme_bw()+
-  geom_point()+
+halodule = ggplot(aes(x = halodule, y = avg_spl_low),data = ecometrics)+ theme_bw()+
+  geom_point(aes(color = habitat))+
   geom_smooth(method = "lm", formula = 'y ~x', se = FALSE, color = "black")+
   xlab("Halodule cover")+
   ylab("Average SPL (dB re 1 uPa)")+
-  theme(axis.title = element_text(size = 20), 
-        axis.text = element_text(size = 16))
+  theme(axis.title = element_text(size = 16), 
+        axis.text = element_text(size = 14),
+        legend.position = "none")
 cor(ecometrics$halodule, ecometrics$avg_spl_low, method = "pearson")
 
 # ruppia
-ggplot(aes(x = ruppia, y = avg_spl_low),data = ecometrics)+ theme_bw()+
-  geom_point()+
+ruppia = ggplot(aes(x = ruppia, y = avg_spl_low),data = ecometrics)+ theme_bw()+
+  geom_point(aes(color = habitat))+
   geom_smooth(method = "lm", formula = 'y ~x', se = FALSE, color = "black")+
   xlab("Ruppia cover")+
-  ylab("Average SPL (dB re 1 uPa)")+
-  theme(axis.title = element_text(size = 20), 
-        axis.text = element_text(size = 16))
+ # ylab("Average SPL (dB re 1 uPa)")+
+  ylab(NULL)+
+  theme(axis.title = element_text(size = 16), 
+        axis.text = element_text(size = 14),
+        legend.position = "none")
 cor(ecometrics$ruppia, ecometrics$avg_spl_low, method = "pearson")
 
-# Seagrass
-ggplot(aes(x = seagrass, y = avg_spl_low),data = ecometrics)+ theme_bw()+
-  geom_point()+
-  geom_smooth(method = "lm", formula = 'y ~x', se = FALSE, color = "black")+
-  xlab("Seagrass cover")+
-  ylab("Average SPL (dB re 1 uPa)")+
-  theme(axis.title = element_text(size = 20), 
-        axis.text = element_text(size = 16))
-cor(ecometrics$seagrass, ecometrics$avg_spl_low, method = "pearson")
+# # Seagrass
+# seagrass = ggplot(aes(x = seagrass, y = avg_spl_low),data = ecometrics)+ theme_bw()+
+#   geom_point()+
+#   geom_smooth(method = "lm", formula = 'y ~x', se = FALSE, color = "black")+
+#   xlab("Seagrass cover")+
+#   ylab("Average SPL (dB re 1 uPa)")+
+#   theme(axis.title = element_text(size = 16), 
+#         axis.text = element_text(size = 14),
+#        legend.position = "none")
+# cor(ecometrics$seagrass, ecometrics$avg_spl_low, method = "pearson")
 
 # Oyster
-ggplot(aes(x = oyster, y = avg_spl_low),data = ecometrics)+ theme_bw()+
-  geom_point()+
+oyster = ggplot(aes(x = oyster, y = avg_spl_low),data = ecometrics)+ theme_bw()+
+  geom_point(aes(color = habitat))+
   geom_smooth(method = "lm", formula = 'y ~x', se = FALSE, color = "black")+
   xlab("Oyster cover")+
-  ylab("Average SPL (dB re 1 uPa)")+
-  theme(axis.title = element_text(size = 20), 
-        axis.text = element_text(size = 16))
+  #ylab("Average SPL (dB re 1 uPa)")+
+  ylab(NULL)+
+  theme(axis.title = element_text(size = 16), 
+        axis.text = element_text(size = 14),
+        legend.position = "none")
 cor(ecometrics$oyster, ecometrics$avg_spl_low, method = "pearson")
 
 # Richness
-ggplot(aes(x = richness, y = avg_spl_low),data = ecometrics)+ theme_bw()+
-  geom_point()+
+richness = ggplot(aes(x = richness, y = avg_spl_low),data = ecometrics)+ theme_bw()+
+  geom_point(aes(color = habitat))+
   geom_smooth(method = "lm", formula = 'y ~x', se = FALSE, color = "black")+
-  xlab("Habitat Richness")+
-  ylab("Average SPL (dB re 1 uPa)")+
-  theme(axis.title = element_text(size = 20), 
-        axis.text = element_text(size = 16))
+  xlab("Habitat richness")+
+  #ylab("Average SPL (dB re 1 uPa)")+
+  ylab(NULL)+
+  theme(axis.title = element_text(size = 16), 
+        axis.text = element_text(size = 14),
+        legend.position = "none")
 cor(ecometrics$richness, ecometrics$avg_spl_low, method = "pearson")
 
 # Community Diversity
-ggplot(aes(x = comm_shannonD_sum, y = avg_spl_low),data = ecometrics)+ theme_bw()+
-  geom_point()+
+diversity = ggplot(aes(x = comm_shannonD_sum, y = avg_spl_low),data = ecometrics)+ theme_bw()+
+  geom_point(aes(color = habitat))+
   geom_smooth(method = "lm", formula = 'y ~x', se = FALSE, color = "black")+
-  xlab("Community Diversity")+
-  ylab("Average SPL (dB re 1 uPa)")+
-  theme(axis.title = element_text(size = 20), 
-        axis.text = element_text(size = 16))
+  xlab("Community diversity")+
+  #ylab("Average SPL (dB re 1 uPa)")+
+  ylab(NULL)+
+  theme(axis.title = element_text(size = 16), 
+        axis.text = element_text(size = 14),
+        legend.position = "none")
 cor(ecometrics$comm_shannonD_sum, ecometrics$avg_spl_low, method = "pearson")
 
 # Seagrass area - landscape 
-ggplot(aes(x = seagrass_area, y = avg_spl_low),data = ecometrics)+ theme_bw()+
-  geom_point()+
+sgArea = ggplot(aes(x = seagrass_area, y = avg_spl_low),data = ecometrics)+ theme_bw()+
+  geom_point(aes(color = habitat))+
   geom_smooth(method = "lm", formula = 'y ~x', se = FALSE, color = "black")+
   xlab("Seagrass area")+
   ylab("Average SPL (dB re 1 uPa)")+
-  theme(axis.title = element_text(size = 20), 
-        axis.text = element_text(size = 16))
+  theme(axis.title = element_text(size = 16), 
+        axis.text = element_text(size = 14),
+        legend.position = "none")
 cor(ecometrics$seagrass_area, ecometrics$avg_spl_low, method = "pearson")
 
-ggplot(aes(x = seagrass_perim.area.ratio , y = avg_spl_low),data = ecometrics)+ theme_bw()+
-  geom_point()+
+# Patchiness
+patchiness = ggplot(aes(x = seagrass_perim.area.ratio , y = avg_spl_low),data = ecometrics)+ theme_bw()+
+  geom_point(aes(color = habitat))+
   geom_smooth(method = "lm", formula = 'y ~x', se = FALSE, color = "black")+
-  xlab("Seagrass Perimeter:Area Ratio")+
-  ylab("Average SPL (dB re 1 uPa)")+
-  theme(axis.title = element_text(size = 20), 
-        axis.text = element_text(size = 16))
+  xlab("Seagrass patchiness")+
+ # ylab("Average SPL (dB re 1 uPa)")+
+  ylab(NULL)+
+  theme(axis.title = element_text(size = 16), 
+        axis.text = element_text(size = 14),
+        legend.position = "none")
 cor(ecometrics$seagrass_perim.area.ratio, ecometrics$avg_spl_low, method = "pearson")
 
-ggplot(aes(x = avg_temp, y = avg_spl_low),data = ecometrics)+ theme_bw()+
-  geom_point()+
+# temp
+temp = ggplot(aes(x = avg_temp, y = avg_spl_low),data = ecometrics)+ theme_bw()+
+  geom_point(aes(color = habitat))+
+  geom_smooth(method = "lm", formula = 'y ~x', se = FALSE, color = "black")+
+  xlab("Water temperature")+
+  #ylab("Average SPL (dB re 1 uPa)")+
+  ylab(NULL)+
+  theme(axis.title = element_text(size = 16), 
+        axis.text = element_text(size = 14),
+        legend.position = "none")
+cor(ecometrics$avg_temp, ecometrics$avg_spl_low, method = "pearson")
+
+grid.arrange(halodule, ruppia, oyster, richness, sgArea, patchiness,diversity, temp, nrow =2, ncol = 4)
+
+```
+
+# SPL High
+
+```{r}
+
+#oyster
+oysterH = ggplot(aes(x = oyster, y = avg_spl_high),data = ecometrics)+ theme_bw()+
+  geom_point(aes(color = habitat))+
+  geom_smooth(method = "lm", formula = 'y ~x', se = FALSE, color = "black")+
+  xlab("Oyster Cover")+
+  ylab("Average SPL (dB re 1 uPa)")+
+  theme(axis.title = element_text(size = 16), 
+        axis.text = element_text(size = 14), 
+        legend.position = "none")
+cor(ecometrics$oyster, ecometrics$avg_spl_high, method = "pearson")
+
+# #algae
+# algaeH = ggplot(aes(x = algae, y = avg_spl_high),data = ecometrics)+ theme_bw()+
+#   geom_point(aes(color = ecometrics$habitat))+
+#   geom_smooth(method = "lm", formula = 'y ~x', se = FALSE, color = "black")+
+#   xlab("Algae Cover")+
+#   ylab("Average SPL (dB re 1 uPa)")+
+#   theme(axis.title = element_text(size = 16), 
+#         axis.text = element_text(size = 16))
+# cor(ecometrics$algae, ecometrics$avg_spl_high, method = "pearson")
+
+#richness
+richnessH = ggplot(aes(x = richness, y = avg_spl_high),data = ecometrics)+ theme_bw()+
+  geom_point(aes(color = habitat))+
+  geom_smooth(method = "lm", formula = 'y ~x', se = FALSE, color = "black")+
+  xlab("Habitat Richness")+
+  #ylab("Average SPL (dB re 1 uPa)")+
+  ylab(NULL)+
+  theme(axis.title = element_text(size = 16), 
+        axis.text = element_text(size = 14),
+        legend.position = "none")
+cor(ecometrics$richness, ecometrics$avg_spl_high, method = "pearson")
+
+#habitat total
+totalHabH = ggplot(aes(x = habitat_total, y = avg_spl_high),data = ecometrics)+ theme_bw()+
+  geom_point(aes(color = habitat))+
+  geom_smooth(method = "lm", formula = 'y ~x', se = FALSE, color = "black")+
+  xlab("Habitat total")+
+  #ylab("Average SPL (dB re 1 uPa)")+
+  ylab(NULL)+
+  theme(axis.title = element_text(size = 16), 
+        axis.text = element_text(size = 14), 
+        legend.position = "none")
+cor(ecometrics$habitat_total, ecometrics$avg_spl_high, method = "pearson")
+
+#avg_temp
+tempH = ggplot(aes(x = avg_temp, y = avg_spl_high),data = ecometrics)+ theme_bw()+
+  geom_point(aes(color = habitat))+
   geom_smooth(method = "lm", formula = 'y ~x', se = FALSE, color = "black")+
   xlab("Water Temperature")+
   ylab("Average SPL (dB re 1 uPa)")+
-  theme(axis.title = element_text(size = 20), 
-        axis.text = element_text(size = 16))
-cor(ecometrics$avg_temp, ecometrics$avg_spl_low, method = "pearson")
+  theme(axis.title = element_text(size = 16), 
+        axis.text = element_text(size = 14), 
+        legend.position = "none")
+cor(ecometrics$avg_temp, ecometrics$avg_spl_high, method = "pearson")
+
+#salinity
+salinityH = ggplot(aes(x = sal_avg, y = avg_spl_high),data = ecometrics)+ theme_bw()+
+  geom_point(aes(color = habitat))+
+  geom_smooth(method = "lm", formula = 'y ~x', se = FALSE, color = "black")+
+  xlab("Salinity")+
+  #ylab("Average SPL (dB re 1 uPa)")+
+  ylab(NULL)+
+  theme(axis.title = element_text(size = 16), 
+        axis.text = element_text(size = 14), 
+        legend.position = "none")
+cor(ecometrics$sal_avg, ecometrics$avg_spl_high, method = "pearson")
+
+#depth
+depthH = ggplot(aes(x = depth_m_avg, y = avg_spl_high),data = ecometrics)+ theme_bw()+
+  geom_point(aes(color = habitat))+
+  geom_smooth(method = "lm", formula = 'y ~x', se = FALSE, color = "black")+
+  xlab("Depth")+
+  #ylab("Average SPL (dB re 1 uPa)")+
+  ylab(NULL)+
+  theme(axis.title = element_text(size = 16), 
+        axis.text = element_text(size = 14), 
+        legend.position = "none")
+cor(ecometrics$depth_m_avg, ecometrics$avg_spl_high, method = "pearson")
+
+
+
+grid.arrange(oysterH, richnessH, totalHabH,tempH, salinityH, depthH, nrow = 2,ncol = 3)
+
+```
+
+# Toadfish
+
+```{r}
+
+# Oyster
+oysterT = ggplot(aes(x = oyster, y = ToadCallRate),data = ecometrics)+ theme_bw()+
+  geom_point(aes(color = habitat))+
+  geom_smooth(method = "lm", formula = 'y ~x', se = FALSE, color = "black")+
+  xlab("Oyster Cover")+
+  ylab("Toadfish Call Rate")+
+  theme(axis.title = element_text(size = 16), 
+        axis.text = element_text(size = 16),
+        legend.position = "none")
+cor(ecometrics$oyster, ecometrics$ToadCallRate, method = "pearson")
+
+# #algae
+# algaeT = ggplot(aes(x = algae, y = ToadCallRate),data = ecometrics)+ theme_bw()+
+#   geom_point(aes(color = habitat))+
+#   geom_smooth(method = "lm", formula = 'y ~x', se = FALSE, color = "black")+
+#   xlab("Algae Cover")+
+#   ylab("Toadfish Call Rate")+
+#   theme(axis.title = element_text(size = 16), 
+#         axis.text = element_text(size = 16))
+# cor(ecometrics$algae, ecometrics$ToadCallRate, method = "pearson")
+
+#richness comb
+richnessT = ggplot(aes(x = richness_comb, y = ToadCallRate),data = ecometrics)+ theme_bw()+
+  geom_point(aes(color = habitat))+
+  geom_smooth(method = "lm", formula = 'y ~x', se = FALSE, color = "black")+
+  xlab("Habitat Richness")+
+  #ylab("Toadfish Call Rate")+
+  ylab(NULL)+
+  theme(axis.title = element_text(size = 16), 
+        axis.text = element_text(size = 16),
+        legend.position = "none")
+cor(ecometrics$richness_comb, ecometrics$ToadCallRate, method = "pearson")
+
+#habitat total
+totalHabT = ggplot(aes(x = habitat_total, y = ToadCallRate),data = ecometrics)+ theme_bw()+
+  geom_point(aes(color = habitat))+
+  geom_smooth(method = "lm", formula = 'y ~x', se = FALSE, color = "black")+
+  xlab("Habitat total")+
+  #ylab("Toadfish Call Rate")+
+  ylab(NULL)+
+  theme(axis.title = element_text(size = 16), 
+        axis.text = element_text(size = 16),
+        legend.position = "none")
+cor(ecometrics$habitat_total, ecometrics$ToadCallRate, method = "pearson")
+
+grid.arrange(oysterT,richnessT,totalHabT, ncol = 3)
+
+## Summary of toadfish call rates
+toadfish_rates = ecometrics %>%
+  select(site, habitat,deploy_num,ToadCallRate, ToadCallRateNorm) %>%
+  filter(ToadCallRate > 0)
+
+min(toadfish_rates$ToadCallRate)
+max(toadfish_rates$ToadCallRate)
+unique(toadfish_rates$habitat)
+unique(toadfish_rates$deploy_num)
 
 
 ```
 
+## First attempt at modeling SPL (Low) and ecometrics
 
+```{r}
 
+# This currently doesn't account for habitat type - which likely confounds some trends
+
+metricModP = lm(avg_spl_low ~ halodule + ruppia + oyster + richness, data = ecometrics)
+metricModL = lm(avg_spl_low ~ seagrass_area + seagrass_perim.area.ratio, data = ecometrics)
+metricModC = lm(avg_spl_low ~ comm_shannonD_sum, data = ecometrics)
+metricModA = lm(avg_spl_low ~ avg_temp, data = ecometrics)
+metricModPL = lm(avg_spl_low ~ halodule + ruppia + oyster + richness + seagrass_area + seagrass_perim.area.ratio,
+                 data = ecometrics)
+metricModPC = lm(avg_spl_low ~ halodule + ruppia + oyster + richness + comm_shannonD_sum, data = ecometrics)
+metricModPA = lm(avg_spl_low ~ halodule + ruppia + oyster + richness + avg_temp, data = ecometrics)
+metricModLC = lm(avg_spl_low ~ seagrass_area + seagrass_perim.area.ratio + comm_shannonD_sum, data = ecometrics)
+metricModLA = lm(avg_spl_low ~ seagrass_area + seagrass_perim.area.ratio + avg_temp, data = ecometrics)
+metricModCA = lm(avg_spl_low ~ comm_shannonD_sum + avg_temp, data = ecometrics)
+metricModPLC = lm(avg_spl_low ~ halodule + ruppia + oyster + richness + seagrass_area + seagrass_perim.area.ratio
+                  + comm_shannonD_sum, data = ecometrics)
+metricModPLA = lm(avg_spl_low ~ halodule + ruppia + oyster + richness + seagrass_area + seagrass_perim.area.ratio
+                  + avg_temp, data = ecometrics)
+metricMODPCA = lm(avg_spl_low ~ halodule + ruppia + oyster + richness + comm_shannonD_sum + avg_temp, data = ecometrics)
+metricModLCA = lm(avg_spl_low ~ seagrass_area + seagrass_perim.area.ratio + comm_shannonD_sum + avg_temp,
+                  data = ecometrics)
+metricModPLCA = lm(avg_spl_low ~ halodule + ruppia + oyster + richness + seagrass_area + seagrass_perim.area.ratio
+                  + comm_shannonD_sum + avg_temp, data = ecometrics)
+
+AIC(metricModPLCA, metricModLCA, metricMODPCA, metricModPLA, metricModPLC, metricModCA, metricModLA, metricModLC,
+    metricModPA, metricModPC, metricModPL, metricModP, metricModL, metricModC, metricModA) 
+
+library(MuMIn)
+
+model.sel(metricModPLCA, metricModLCA, metricMODPCA, metricModPLA, metricModPLC, metricModCA, metricModLA, metricModLC,
+    metricModPA, metricModPC, metricModPL, metricModP, metricModL, metricModC, metricModA)
+
+# P, PA, CA, & C are all indiscernible by AICc
+# AICc is a correction for small sample size - should likely use here. 
+
+```
 
 
 
