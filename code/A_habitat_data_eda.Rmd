@@ -183,6 +183,8 @@ seagrass_all = left_join(seagrass_all, max_canopy_site[,c("site", "max10")], by 
 
 ## Community data - summarized by each tow
 
+## - indicates code I've edited to explore trophic level and invertebrate abundances
+
 ```{r}
 trawl = read.csv("data/raw_data/trawl/summer_trawl_data_2019.csv", header = TRUE)
 
@@ -215,17 +217,26 @@ catch_long = catch_long %>%
 
 std_catch = data.frame(pivot_wider(catch_long,id_cols = 1:10, names_from = "identity",values_from = "std_abund"))
 
-species_list = read.csv("data/metadata/species_list.csv", header = TRUE)
+##species_list = read.csv("data/metadata/species_list.csv", header = TRUE)
+species_list = read.csv("data/metadata/species_list_v2.csv", header = TRUE)
 
-catch_long = left_join(catch_long, species_list[,c(2,4:7)], by = c("identity" = "colnames.spp_data.")) 
+##catch_long = left_join(catch_long, species_list[,c(2,4:7)], by = c("identity" = "colnames.spp_data.")) 
+catch_long = left_join(catch_long, species_list[,c(2,4:6,8,9)], by = c("identity" = "colnames.spp_data.")) 
 
 # Sum replicate trawls
 catch_long$Depth_m = as.numeric(catch_long$Depth_m)
+## test_catch = catch_long %>%
+##   group_by(Project.Site.Name, identity) %>%
+##   summarise(habitat = Habitat, guild = guild, guild_secondary = guild_secondary, soniferous = soniferous, 
+##             depth_m_avg = mean(Depth_m), temp_avg = mean(Temp_C), sal_avg = mean(Sal_ppt),
+##             dist_m_sum = sum(Distance_m), abund_sum = sum(abund))
 test_catch = catch_long %>%
   group_by(Project.Site.Name, identity) %>%
   summarise(habitat = Habitat, guild = guild, guild_secondary = guild_secondary, soniferous = soniferous, 
             depth_m_avg = mean(Depth_m), temp_avg = mean(Temp_C), sal_avg = mean(Sal_ppt),
-            dist_m_sum = sum(Distance_m), abund_sum = sum(abund))
+            dist_m_sum = sum(Distance_m), abund_sum = sum(abund),
+            trophic_level = trophic_level, phylum = phylum)
+
 
 test_catch = test_catch %>%
  mutate(std_dist_sum = dist_m_sum/200, std_abund_sum = abund_sum/std_dist_sum)
@@ -240,7 +251,7 @@ soniferous = test_catch %>%
 
 std_catch_sum = data.frame(pivot_wider(test_catch,id_cols = c(1,3,7:9), 
                                        names_from = "identity",values_from = "std_abund_sum"))
-write.csv(std_catch_sum, "data/clean_data/std_catch_sum.csv")
+#write.csv(std_catch_sum, "data/clean_data/std_catch_sum.csv")
 
 # Community metrics summed
 trawl_metrics = std_catch_sum[,c(1:5)]
@@ -272,6 +283,52 @@ trawl_metrics = left_join(trawl_metrics, guild2_abund, by = "Project.Site.Name")
 
 # Retain abundances of species of interest
 trawl_metrics = left_join(trawl_metrics, std_catch_sum[,c("Project.Site.Name","num_bai_chr","num_ort_chr","num_ops_tau")], by="Project.Site.Name")
+
+
+### Explore trophic level and invertebrate density
+invert_abund = test_catch %>%
+  group_by(Project.Site.Name, phylum) %>%
+  summarise(phylum_abund = sum(std_abund_sum))
+phylum_abund = pivot_wider(invert_abund, id_cols = 1, names_from = "phylum", values_from = "phylum_abund")
+
+# explore correlation before moving forward
+test_cor = left_join(phylum_abund,spl_pmHT, by = c("Project.Site.Name" = "site"))
+test_cor = left_join(test_cor, toadfish, by = c("Project.Site.Name" = "Site"))
+test_cor$ToadCallRate[test_cor$ToadCallRate == "NaN"] = 0
+
+# mean trophic level weighted by abundance?
+# (sum(trophic level * abundance)) for each species/total_abund in trawl? 
+trophic_by_abund = test_catch %>%
+  group_by(Project.Site.Name, identity) %>%
+  summarise(trophic_by_abund = trophic_level*std_abund_sum)
+
+avg_trophic = trophic_by_abund %>%
+  group_by(Project.Site.Name) %>%
+  summarise(sum_trophic = sum(trophic_by_abund, na.rm = TRUE))
+  
+avg_trophic$avg_trophic = avg_trophic$sum_trophic/trawl_metrics$total_abund_sum
+
+test_cor = left_join(test_cor, avg_trophic, by = "Project.Site.Name")
+test_cor$avg_trophic[test_cor$avg_trophic == "NaN"] = 0
+
+
+cor(test_cor$invertebrate, test_cor$avg_spl_low, method = "pearson")
+cor(test_cor$invertebrate, test_cor$avg_spl_high, method = "pearson")
+cor(test_cor$invertebrate, test_cor$ToadCallRate, method = "pearson")
+
+cor(test_cor$avg_trophic, test_cor$avg_spl_low, method = "pearson")
+cor(test_cor$avg_trophic, test_cor$avg_spl_high, method = "pearson")
+cor(test_cor$avg_trophic, test_cor$ToadCallRate, method = "pearson")
+
+# filter to seagrass only: 
+test_cor_seagrass = test_cor[13:24,]
+cor(test_cor_seagrass$invertebrate, test_cor_seagrass$avg_spl_low, method = "pearson")
+cor(test_cor_seagrass$invertebrate, test_cor_seagrass$avg_spl_high, method = "pearson")
+cor(test_cor_seagrass$invertebrate, test_cor_seagrass$ToadCallRate, method = "pearson")
+
+cor(test_cor_seagrass$avg_trophic, test_cor_seagrass$avg_spl_low, method = "pearson")
+cor(test_cor_seagrass$avg_trophic, test_cor_seagrass$avg_spl_high, method = "pearson")
+cor(test_cor_seagrass$avg_trophic, test_cor_seagrass$ToadCallRate, method = "pearson")
 
 ```
 
