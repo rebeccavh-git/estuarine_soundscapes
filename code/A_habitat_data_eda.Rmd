@@ -220,7 +220,6 @@ std_catch = data.frame(pivot_wider(catch_long,id_cols = 1:10, names_from = "iden
 species_list = read.csv("data/metadata/species_list.csv", header = TRUE)
 
 catch_long = left_join(catch_long, species_list[,c(2,4:7)], by = c("identity" = "colnames.spp_data.")) 
-catch_long = left_join(catch_long, species_list[,c(2,4:6,8,9)], by = c("identity" = "colnames.spp_data.")) 
 
 # Sum replicate trawls
 catch_long$Depth_m = as.numeric(catch_long$Depth_m)
