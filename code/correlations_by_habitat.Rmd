@@ -38,7 +38,7 @@ ggplot(data = ecometrics, aes(x = habitat, y = avg_spl_high))+ theme_bw()+
   geom_boxplot()
 
 splHbyhabitat = lm(avg_spl_high ~ habitat, data = ecometrics)
-summary(splbyhabitat)
+summary(splHbyhabitat)
 SPLHbyHabAOV = aov(splHbyhabitat)
 TukeyHSD(SPLHbyHabAOV)
 
