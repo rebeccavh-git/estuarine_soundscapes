@@ -187,7 +187,7 @@ grid.arrange(halodule, ruppia, richness, sgCoreArea, patchiness, oysterPerim, di
 # SPL High
 
 ```{r}
-cor_spl_high = read.csv("data/clean_data/metricCorrEverything_highSPL.csv")
+#cor_spl_high = read.csv("data/clean_data/metricCorrEverything_highSPL.csv")
 
 
 # Shannon diversity
@@ -308,18 +308,8 @@ grid.arrange(diversityH, richnessH, totalCoverH, oysterPerimH, soniferousSH, dep
 
 ```{r}
 
-
-# deploy_num
-# richness_comb
-# total_cover
-# carnivore
-# seagrass_perimeter
-# oyster_core.area
-# habitat_total
-
-
 #richness comb
-richnessT = ggplot(aes(x = richness_comb, y = ToadCallRate),data = ecometrics)+ theme_bw()+
+richnessT = ggplot(aes(x = richness_comb, y = TFAvgPresentNight),data = ecometrics)+ theme_bw()+
   geom_point(aes(color = habitat))+
   geom_smooth(method = "lm", formula = 'y ~x', se = FALSE, color = "black")+
   xlab("Habitat Richness")+
@@ -328,10 +318,10 @@ richnessT = ggplot(aes(x = richness_comb, y = ToadCallRate),data = ecometrics)+ 
   theme(axis.title = element_text(size = 16), 
         axis.text = element_text(size = 16),
         legend.position = "none")
-cor(ecometrics$richness_comb, ecometrics$ToadCallRate, method = "pearson")
+cor(ecometrics$richness_comb, ecometrics$TFAvgPresentNight, method = "pearson")
 
 # total cover
-totalCoverT = ggplot(aes(x = total_cover, y = ToadCallRate),data = ecometrics)+ theme_bw()+
+totalCoverT = ggplot(aes(x = total_cover, y = TFAvgPresentNight),data = ecometrics)+ theme_bw()+
   geom_point(aes(color = habitat))+
   geom_smooth(method = "lm", formula = 'y ~x', se = FALSE, color = "black")+
   xlab("Total habitat cover")+
@@ -340,22 +330,58 @@ totalCoverT = ggplot(aes(x = total_cover, y = ToadCallRate),data = ecometrics)+ 
   theme(axis.title = element_text(size = 16), 
         axis.text = element_text(size = 16),
         legend.position = "none")
-cor(ecometrics$total_cover, ecometrics$ToadCallRate, method = "pearson")
+cor(ecometrics$total_cover, ecometrics$TFAvgPresentNight, method = "pearson")
 
-#oyster area
-oysterAreaT = ggplot(aes(x = oyster_area, y = ToadCallRate),data = ecometrics)+ theme_bw()+
+#oyster core area
+oysterCoreAreaT = ggplot(aes(x = oyster_core.area, y = TFAvgPresentNight),data = ecometrics)+ theme_bw()+
   geom_point(aes(color = habitat))+
   geom_smooth(method = "lm", formula = 'y ~x', se = FALSE, color = "black")+
-  xlab("Oyster area")+
+  xlab("Oyster core area")+
   #ylab("Toadfish Call Rate")+
   ylab(NULL)+
   theme(axis.title = element_text(size = 16), 
         axis.text = element_text(size = 16),
         legend.position = "none")
-cor(ecometrics$oyster_area, ecometrics$ToadCallRate, method = "pearson")
+cor(ecometrics$oyster_core.area, ecometrics$TFAvgPresentNight, method = "pearson")
+
+# seagrass_perimeter
+seagrassPerimT = ggplot(aes(x = seagrass_perimeter, y = TFAvgPresentNight),data = ecometrics)+ theme_bw()+
+  geom_point(aes(color = habitat))+
+  geom_smooth(method = "lm", formula = 'y ~x', se = FALSE, color = "black")+
+  xlab("Seagrass Perimeter")+
+  #ylab("Toadfish Call Rate")+
+  ylab(NULL)+
+  theme(axis.title = element_text(size = 16), 
+        axis.text = element_text(size = 16),
+        legend.position = "none")
+cor(ecometrics$seagrass_perimeter, ecometrics$TFAvgPresentNight, method = "pearson")
+
+# habitat_total
+habitatTotalT = ggplot(aes(x = habitat_total, y = TFAvgPresentNight),data = ecometrics)+ theme_bw()+
+  geom_point(aes(color = habitat))+
+  geom_smooth(method = "lm", formula = 'y ~x', se = FALSE, color = "black")+
+  xlab("Total habitat area")+
+  #ylab("Toadfish Call Rate")+
+  ylab(NULL)+
+  theme(axis.title = element_text(size = 16), 
+        axis.text = element_text(size = 16),
+        legend.position = "none")
+cor(ecometrics$habitat_total, ecometrics$TFAvgPresentNight, method = "pearson")
+
+# carnivore
+carnivoreT = ggplot(aes(x = carnivore, y = TFAvgPresentNight),data = ecometrics)+ theme_bw()+
+  geom_point(aes(color = habitat))+
+  geom_smooth(method = "lm", formula = 'y ~x', se = FALSE, color = "black")+
+  xlab("Carnivore CPUE")+
+  #ylab("Toadfish Call Rate")+
+  ylab(NULL)+
+  theme(axis.title = element_text(size = 16), 
+        axis.text = element_text(size = 16),
+        legend.position = "none")
+cor(ecometrics$carnivore, ecometrics$TFAvgPresentNight, method = "pearson")
 
 # deploy_num
-deployT = ggplot(aes(x = deploy_num, y = ToadCallRate),data = ecometrics)+ theme_bw()+
+deployT = ggplot(aes(x = deploy_num, y = TFAvgPresentNight),data = ecometrics)+ theme_bw()+
   geom_point(aes(color = habitat))+
   geom_smooth(method = "lm", formula = 'y ~x', se = FALSE, color = "black")+
   xlab("Deployment")+
@@ -364,18 +390,18 @@ deployT = ggplot(aes(x = deploy_num, y = ToadCallRate),data = ecometrics)+ theme
   theme(axis.title = element_text(size = 16), 
         axis.text = element_text(size = 16),
         legend.position = "none")
-cor(ecometrics$deploy_num, ecometrics$ToadCallRate, method = "pearson")
+cor(ecometrics$deploy_num, ecometrics$TFAvgPresentNight, method = "pearson")
 
 
-grid.arrange(richnessT, totalCoverT, oysterAreaT, deployT, ncol = 2)
+grid.arrange(richnessT, totalCoverT,  oysterCoreAreaT, seagrassPerimT, habitatTotalT, carnivoreT, deployT, ncol = 3)
 
 ## Summary of toadfish call rates
 toadfish_rates = ecometrics %>%
-  select(site, habitat,deploy_num,ToadCallRate, ToadCallRateNorm) %>%
+  select(site, habitat,deploy_num,TFAvgPresentNight) %>%
   filter(ToadCallRate > 0)
 
-min(toadfish_rates$ToadCallRate)
-max(toadfish_rates$ToadCallRate)
+min(toadfish_rates$TFAvgPresentNight)
+max(toadfish_rates$TFAvgPresentNight)
 unique(toadfish_rates$habitat)
 unique(toadfish_rates$deploy_num)
 
@@ -387,18 +413,112 @@ unique(toadfish_rates$deploy_num)
 ```{r}
 
 # richness
-# shannonD
-# seagrass
-# richness_comb
-# comm_shannonD_sum
-# seagrass_core_area
-# dist2adjPatch
-# avgTempNight
+richnessP = ggplot(aes(x = richness , y = PerchAvgPresentNight),data = ecometrics)+ theme_bw()+
+  geom_point(aes(color = habitat))+
+  geom_smooth(method = "lm", formula = 'y ~x', se = FALSE, color = "black")+
+  xlab("Habitat species richness")+
+  #ylab("Silver perch Call Rate")+
+  ylab(NULL)+
+  theme(axis.title = element_text(size = 16), 
+        axis.text = element_text(size = 16),
+        legend.position = "none")
+cor(ecometrics$richness, ecometrics$PerchAvgPresentNight, method= "pearson")
 
+# shannonD
+shannonDP = ggplot(aes(x = shannonD, y = PerchAvgPresentNight),data = ecometrics)+ theme_bw()+
+  geom_point(aes(color = habitat))+
+  geom_smooth(method = "lm", formula = 'y ~x', se = FALSE, color = "black")+
+  xlab("Habitat diversity")+
+  #ylab("Silver perch Call Rate")+
+  ylab(NULL)+
+  theme(axis.title = element_text(size = 16), 
+        axis.text = element_text(size = 16),
+        legend.position = "none")
+cor(ecometrics$shannonD, ecometrics$PerchAvgPresentNight, method= "pearson")
+
+# seagrass
+seagrassP = ggplot(aes(x = seagrass, y = PerchAvgPresentNight),data = ecometrics)+ theme_bw()+
+  geom_point(aes(color = habitat))+
+  geom_smooth(method = "lm", formula = 'y ~x', se = FALSE, color = "black")+
+  xlab("Total seagrass cover")+
+  #ylab("Silver perch Call Rate")+
+  ylab(NULL)+
+  theme(axis.title = element_text(size = 16), 
+        axis.text = element_text(size = 16),
+        legend.position = "none")
+cor(ecometrics$seagrass, ecometrics$PerchAvgPresentNight, method= "pearson")
+
+# richness_comb
+richness_combP = ggplot(aes(x = richness_comb, y = PerchAvgPresentNight),data = ecometrics)+ theme_bw()+
+  geom_point(aes(color = habitat))+
+  geom_smooth(method = "lm", formula = 'y ~x', se = FALSE, color = "black")+
+  xlab("Habitat type richness")+
+  #ylab("Silver perch Call Rate")+
+  ylab(NULL)+
+  theme(axis.title = element_text(size = 16), 
+        axis.text = element_text(size = 16),
+        legend.position = "none")
+cor(ecometrics$richness_comb, ecometrics$PerchAvgPresentNight, method= "pearson")
+
+# seagrass_core_area
+seagrassCoreAreaP = ggplot(aes(x = seagrass_core.area, y = PerchAvgPresentNight),data = ecometrics)+ theme_bw()+
+  geom_point(aes(color = habitat))+
+  geom_smooth(method = "lm", formula = 'y ~x', se = FALSE, color = "black")+
+  xlab("Seagrass core area")+
+  #ylab("Silver perch Call Rate")+
+  ylab(NULL)+
+  theme(axis.title = element_text(size = 16), 
+        axis.text = element_text(size = 16),
+        legend.position = "none")
+cor(ecometrics$seagrass_core.area, ecometrics$PerchAvgPresentNight, method= "pearson")
+
+# dist2adjPatch
+dist2adjPatchP = ggplot(aes(x = dist2adjPatch, y = PerchAvgPresentNight),data = ecometrics)+ theme_bw()+
+  geom_point(aes(color = habitat))+
+  geom_smooth(method = "lm", formula = 'y ~x', se = FALSE, color = "black")+
+  xlab("Patch Isolation")+
+  #ylab("Silver perch Call Rate")+
+  ylab(NULL)+
+  theme(axis.title = element_text(size = 16), 
+        axis.text = element_text(size = 16),
+        legend.position = "none")
+cor(ecometrics$dist2adjPatch, ecometrics$PerchAvgPresentNight, method= "pearson")
+# pos relationship is even stronger when MA (outlier) is removed
+perchIsolation = ecometrics$dist2adjPatch
+perchIsolation[12] = NA
+perchRate = ecometrics$PerchAvgPresentNight
+perchRate[12] = NA
+cor(perchIsolation,perchRate, method = "pearson", use = "complete.obs")
+
+# comm_shannonD_sum
+comm_shannonDP = ggplot(aes(x = comm_shannonD_sum, y = PerchAvgPresentNight),data = ecometrics)+ theme_bw()+
+  geom_point(aes(color = habitat))+
+  geom_smooth(method = "lm", formula = 'y ~x', se = FALSE, color = "black")+
+  xlab("Community diversity")+
+  #ylab("Silver perch Call Rate")+
+  ylab(NULL)+
+  theme(axis.title = element_text(size = 16), 
+        axis.text = element_text(size = 16),
+        legend.position = "none")
+cor(ecometrics$comm_shannonD_sum, ecometrics$PerchAvgPresentNight, method= "pearson")
+
+# avgTempNight
+avgTempP = ggplot(aes(x = avgTempNight, y = PerchAvgPresentNight),data = ecometrics)+ theme_bw()+
+  geom_point(aes(color = habitat))+
+  geom_smooth(method = "lm", formula = 'y ~x', se = FALSE, color = "black")+
+  xlab("Average Temperature")+
+  #ylab("Silver perch Call Rate")+
+  ylab(NULL)+
+  theme(axis.title = element_text(size = 16), 
+        axis.text = element_text(size = 16),
+        legend.position = "none")
+cor(ecometrics$avgTempNight, ecometrics$PerchAvgPresentNight, method= "pearson")
+
+grid.arrange(richnessP, shannonDP, seagrassP, richness_combP, seagrassCoreAreaP, dist2adjPatchP, comm_shannonDP, avgTempP, ncol = 4)
 
 ```
 
-## First attempt at modeling SPL (Low) and ecometrics
+## Modeling Low frequency SPL
 
 ```{r}
 
@@ -424,20 +544,26 @@ metricModLCA = lm(avg_spl_low ~  seagrass_core.area + seagrass_perim.area.ratio 
 metricModPLCA = lm(avg_spl_low ~ halodule + ruppia + richness +  seagrass_core.area + seagrass_perim.area.ratio + oyster_perimeter
                   + comm_shannonD_sum + num_bai_chr + avg_temp, data = ecometrics)
 
-AIC(metricModPLCA, metricModLCA, metricMODPCA, metricModPLA, metricModPLC, metricModCA, metricModLA, metricModLC,
-    metricModPA, metricModPC, metricModPL, metricModP, metricModL, metricModC, metricModA) 
-
 model.sel(metricModPLCA, metricModLCA, metricMODPCA, metricModPLA, metricModPLC, metricModCA, metricModLA, metricModLC,
     metricModPA, metricModPC, metricModPL, metricModP, metricModL, metricModC, metricModA)
 
 # PLA, PL, C, LA, CA are all indiscernible by AICc
 # AICc is a correction for small sample size - should likely use here. 
 
-# AIC identified PLA as the best fit
+LowFMods = list(metricModPLA, metricModPL, metricModC, metricModLA, metricModCA)
+importance(LowFMods)
+# Do not include community
+
+# Variance Partitioning
+Lpatch = summary(metricModPLA)$r.squared - summary(metricModLA)$r.squared
+Llandscape = summary(metricModPLA)$r.squared - summary(metricModPA)$r.squared
+Labiotic = summary(metricModPLA)$r.squared - summary(metricModPL)$r.squared
+Lunexplained = 1 - summary(metricModPLA)$r.squared
+Ltotal = summary(metricModPLA)$r.squared
 
 ```
 
-## Modeling high frequency SPL and candidate ecometrics
+## Modeling High frequency SPL
 
 ```{r}
 HmetricModP = lm(avg_spl_low ~ shannonD + richness_comb + total_cover , data = ecometrics)
@@ -462,235 +588,104 @@ HmetricModPLCA = lm(avg_spl_low ~ shannonD + richness_comb + total_cover  + oyst
 model.sel(HmetricModPLCA, HmetricModLCA, HmetricModPCA, HmetricModPLA, HmetricModPLC, HmetricModCA, HmetricModLA, HmetricModLC,
     HmetricModPA, HmetricModPC, HmetricModPL, HmetricModP, HmetricModL, HmetricModC, HmetricModA)
 
-AIC(HmetricModPLCA, HmetricModLCA, HmetricModPCA, HmetricModPLA, HmetricModPLC, HmetricModCA, HmetricModLA, HmetricModLC,
-    HmetricModPA, HmetricModPC, HmetricModPL, HmetricModP, HmetricModL, HmetricModC, HmetricModA)
-
 # within 2 AIC
 # AICc: PL & PLC
 # AIC: PLC, PLCA, PLA, & PL 
 
+# Variable importance
+HighFMods = list(HmetricModPL, HmetricModPLC)
+importance(HighFMods)
+
 # Variance partitioning High Frequency:
 # the math is correct there are negative shared variances - look into more to understand
-H_patch = summary(HmetricModPLC)$r.squared - summary(HmetricModLC)$r.squared
-H_landscape = summary(HmetricModPLC)$r.squared - summary(HmetricModPC)$r.squared
-H_comm = summary(HmetricModPLC)$r.squared - summary(HmetricModPL)$r.squared
-
-H_unexplained = 1- summary(HmetricModPLC)$r.squared
+Hpatch = summary(HmetricModPLC)$r.squared - summary(HmetricModLC)$r.squared
+Hlandscape = summary(HmetricModPLC)$r.squared - summary(HmetricModPC)$r.squared
+Hcommunity = summary(HmetricModPLC)$r.squared - summary(HmetricModPL)$r.squared
+Hunexplained = 1- summary(HmetricModPLC)$r.squared
+Htotal = summary(HmetricModPLC)$r.squared
 
 # sum of unique explanation is greater than the total?? something seems wrong there
-# is the unique explanation 37% of the total (or 37% of the 70% explained?)
+# negative shared variance
 Htotal_explained = summary(HmetricModPLC)$r.squared
 H_patch + H_landscape + H_comm
 
-
-# advises against variance partitioning with more than three categories - can you variable weights from AIC to justify which metric categories should be included. 
+# Allen advises against variance partitioning with more than three categories - 
+# can use variable weights from AIC to justify which metric categories should be included. 
 ```
 
 ### Modeling toadfish
 
 ```{r}
 
-TmetricModP = lm(ToadCallRate ~ richness_comb + total_cover, data = ecometrics)
-TmetricModL = lm(ToadCallRate ~ oyster_area, data = ecometrics)
-TmetricModA = lm(ToadCallRate ~ deploy_num, data = ecometrics)
-TmetricModPL = lm(ToadCallRate ~ richness_comb + total_cover + oyster_area, data = ecometrics)
-TmetricModPA = lm(ToadCallRate ~ richness_comb + total_cover, data = ecometrics)
-TmetricModLA = lm(ToadCallRate ~ oyster_area + deploy_num, data = ecometrics)
-TmetricModPLA = lm(ToadCallRate ~ richness_comb + total_cover + oyster_area + deploy_num, data = ecometrics)
+TmetricModP = lm(TFAvgPresentNight ~ richness_comb + total_cover, data = ecometrics)
+TmetricModL = lm(TFAvgPresentNight ~ oyster_core.area + seagrass_perimeter + habitat_total, data = ecometrics)
+TmetricModC = lm(TFAvgPresentNight ~ carnivore, data = ecometrics)
+TmetricModA = lm(TFAvgPresentNight ~ deploy_num, data = ecometrics)
+TmetricModPL = lm(TFAvgPresentNight ~ richness_comb + total_cover + oyster_core.area + seagrass_perimeter + habitat_total, data = ecometrics)
+TmetricModPC = lm(TFAvgPresentNight ~ richness_comb + total_cover + carnivore, data = ecometrics)
+TmetricModPA = lm(TFAvgPresentNight ~ richness_comb + total_cover + deploy_num, data = ecometrics)
+TmetricModLC = lm(TFAvgPresentNight ~ oyster_core.area + seagrass_perimeter + habitat_total + carnivore, data = ecometrics)
+TmetricModLA = lm(TFAvgPresentNight ~ oyster_core.area + seagrass_perimeter + habitat_total + deploy_num, data = ecometrics)
+TmetricModCA = lm(TFAvgPresentNight ~ carnivore + deploy_num, data = ecometrics)
+TmetricModPLC = lm(TFAvgPresentNight ~ richness_comb + total_cover + oyster_core.area + seagrass_perimeter + habitat_total + carnivore, data = ecometrics)
+TmetricModPLA = lm(TFAvgPresentNight ~ richness_comb + total_cover + oyster_core.area + seagrass_perimeter + habitat_total + deploy_num, data = ecometrics)
+TmetricModPCA = lm(TFAvgPresentNight ~ richness_comb + total_cover + carnivore + deploy_num, data = ecometrics)
+TmetricModLCA = lm(TFAvgPresentNight ~ oyster_core.area + seagrass_perimeter + habitat_total + carnivore + deploy_num, data = ecometrics)
+TmetricModPLCA = lm(TFAvgPresentNight ~ richness_comb + total_cover + oyster_core.area + seagrass_perimeter + habitat_total + carnivore + deploy_num, 
+                    data = ecometrics)
 
-AIC(TmetricModPLA, TmetricModPL, TmetricModPA, TmetricsModLA, TmetricModP, TmetricModL, TmetricModA) 
+model.sel(TmetricModPLCA, TmetricModLCA, TmetricModPCA, TmetricModPLA, TmetricModPLC, TmetricModCA, TmetricModLA, TmetricModLC,
+    TmetricModPA, TmetricModPC, TmetricModPL, TmetricModP, TmetricModL, TmetricModC, TmetricModA)
 
-model.sel(TmetricModPLA, TmetricModPL, TmetricModPA, TmetricsModLA, TmetricModP, TmetricModL, TmetricModA)
+#AICc: PA, PLA
 
-#AIC: PLA
-#AICc: PLA
+# Calculate variable weights and decide whether to include landscape variables
+ToadfishMods = list(TmetricModPA, TmetricModPLA)
+importance(ToadfishMods)
 
-# attempting variance partitioning 
-
+# Attempting variance partitioning 
 Tpatch = summary(TmetricModPLA)$r.squared - summary(TmetricModLA)$r.squared
 Tlandscape = summary(TmetricModPLA)$r.squared - summary(TmetricModPA)$r.squared
 Tabiotic = summary(TmetricModPLA)$r.squared - summary(TmetricModPL)$r.squared
 Tunexplained = 1 - summary(TmetricModPLA)$r.squared
-
-
-```
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-#### END HERER FOR NOW!
-
-## Build model to explore variation in SPL
-
-1. Using predictor variables that crossed a 0.3 correlation threshold, examine simple linear model with all candidate predictors
-2. Evaluate model fit and evidence to retain or drop each predictor until a final model is reached
-
-** Need to consider whether a mixed-effects model structure is more appropriate - random effect of deployment, site? should habitat type be a fixed or random effect?, should any interactions be included?**
-
-Questions: 
-1. Do I need to standardize or transform predictors?
-2. How to evaluate if lm is sufficient, or should include mixed effects?
-3. How to incorporate the variable effects of habitat? Can I exclude mudflats?
-
-```{r}
-#library(nlme)
-
-# HIGH FREQUENCY - 
-#didn't include avg_blade_length even though strong correlation Possibly explore seagrass alone
-
-highMod1 = lm(avg_spl_high ~ totalcover + oyster + evenness + depth_m_avg + 
-                temp_avg + sal_avg + comm_evenness_sum + piscivore + habitat, data = ecometrics)
-
-
-#re-level habitat to mudflat as base case: 
-spl ~ creek + creek_cover + seagrass + seagrasscover
-
-# recommendation: 
-# build ecologicaly reasonable models 
-# possibility incorporate "biotic effects", "env effects" or not... 
-# then compare or average the models
-
-## this doesn't work due to different sizes - missing data
-#ecometrics$highmodpredict = predict(highMod2)
-
-# Selected highMod2 due to lowest ACI, but the conf intervals for many of the effects overlap with zero
-# doesn't this suggest no effect of those variables?
-confint(highMod2)
-
-# inspect residuals
-residplot <- function(model){
-  ggplot(model,aes(x=.fitted,y=.resid))+ 
-    geom_point()+
-    labs(x="Fitted values",y="Residuals")
-  }
-# inspect quantiles 
-qqplot <- function(model){
-  q1 <- ggplot(model,aes(sample=.stdresid))
-  q1+geom_point(stat="qq")+geom_abline(slope=1,intercept=0)+
-    labs(x="Theoretical Quantiles",y="Standardized residuals")
-}
-
-residplot(highMod2)
-qqplot(highMod2)
-confint(highMod2)
-
-# LOW FREQUENCY 
-#should I include interaction between habitat and total cover?
-
-lowMod1 = lm(avg_spl_low ~ oyster + depth_m_avg + total_abund_sum + comm_richness_sum +
-                 comm_evenness_sum + habitat, data = ecometrics)
-summary(lowMod1)
-drop1(lowMod1)
-
-lowMod2 = lm(avg_spl_low ~ oyster + depth_m_avg + 
-                 comm_evenness_sum, data = ecometrics)
-summary(lowMod2)
-drop1(lowMod2)
-
-AIC(lowMod1, lowMod2)
-
-# Selected lowMod2 for trial, but really not distinguishable by AIC
-confint(lowMod2)
-
-residplot(lowMod2)
-qqplot(lowMod2)
+Ttotal = summary(TmetricModPLA)$r.squared 
+Tpatch+Tlandscape+Tabiotic+Tunexplained
 
 ```
 
-## Variation within habitat type
-
-```{r}
-# Seagrass
-sgMetrics = ecometrics %>%
-  filter(habitat == "seagrass")
-
-sound_seagrass = sgMetrics %>%
-  select(site, habitat, totalcover, seagrass_comb, oyster, saltmarsh, richness, evenness,
-         avg_shoot_density, avg_blade_length,
-        avg_spl_low, avg_spl_high, BI_low, BI_high)
-
-ggpairs(sound_seagrass[,3:14])
-
-# # Creek
-# creekMetrics = ecometrics %>%
-#   filter(habitat == "creek")
-# 
-# sound_creek = creekMetrics %>%
-#   select(site, habitat, totalcover, seagrass_comb, oyster, saltmarsh, richness, evenness,
-#          avg_shoot_density, avg_blade_length,
-#         avg_spl_low, avg_spl_high, BI_low, BI_high)
-# 
-# ggpairs(sound_creek,3:14)
-
-
-
-```
-
-## Plots exploring pairwise correlation and variation among habitat types
+### Modeling Silver Perch
 
 ```{r}
 
-# add habitat label and filter to only seagrass
+PmetricModP = lm(PerchAvgPresentNight ~ richness + shannonD + seagrass + richness_comb, data = ecometrics)
+PmetricModL = lm(PerchAvgPresentNight ~ seagrass_core.area + dist2adjPatch, data = ecometrics)
+PmetricModC = lm(PerchAvgPresentNight ~ comm_shannonD_sum, data = ecometrics)
+PmetricModA = lm(PerchAvgPresentNight ~ avgTempNight, data = ecometrics)
+PmetricModPL = lm(PerchAvgPresentNight ~ richness + shannonD + seagrass + richness_comb + seagrass_core.area + dist2adjPatch, data = ecometrics)
+PmetricModPC = lm(PerchAvgPresentNight ~ richness + shannonD + seagrass + richness_comb + comm_shannonD_sum, data = ecometrics)
+PmetricModPA = lm(PerchAvgPresentNight ~ richness + shannonD + seagrass + richness_comb + avgTempNight, data = ecometrics)
+PmetricModLC = lm(PerchAvgPresentNight ~ seagrass_core.area + dist2adjPatch + comm_shannonD_sum, data = ecometrics)
+PmetricModLA = lm(PerchAvgPresentNight ~ seagrass_core.area + dist2adjPatch + avgTempNight, data = ecometrics)
+PmetricModCA = lm(PerchAvgPresentNight ~ comm_shannonD_sum + avgTempNight, data = ecometrics)
+PmetricModPLC = lm(PerchAvgPresentNight ~ richness + shannonD + seagrass + richness_comb + seagrass_core.area + dist2adjPatch + comm_shannonD_sum, 
+                   data = ecometrics)
+PmetricModPLA = lm(PerchAvgPresentNight ~ richness + shannonD + seagrass + richness_comb + seagrass_core.area + dist2adjPatch + avgTempNight, data = ecometrics)
+PmetricModPCA = lm(PerchAvgPresentNight ~ richness + shannonD + seagrass + richness_comb + comm_shannonD_sum + avgTempNight, data = ecometrics)
+PmetricModLCA = lm(PerchAvgPresentNight ~ seagrass_core.area + dist2adjPatch + comm_shannonD_sum + avgTempNight, data = ecometrics)
+PmetricModPLCA = lm(PerchAvgPresentNight ~ richness + shannonD + seagrass + richness_comb + seagrass_core.area + dist2adjPatch + 
+                      comm_shannonD_sum + avgTempNight, data = ecometrics)
 
-#Benthic metrics
-ggplot(aes(x = richness, y = avg_spl_low, color = habitat), data = ecometrics)+
-  geom_point()
+model.sel(PmetricModPLCA, PmetricModLCA, PmetricModPCA, PmetricModPLA, PmetricModPLC, PmetricModCA, PmetricModLA, PmetricModLC,
+    PmetricModPA, PmetricModPC, PmetricModPL, PmetricModP, PmetricModL, PmetricModC, PmetricModA)
 
-ggplot(aes(x = richness_comb, y = avg_spl_low, color = habitat), data = ecometrics)+
-  geom_point()
+# No need for variable importance when only 1 best model is identified
 
-ggplot(aes(x = evenness , y = avg_spl_low, color = habitat), data = ecometrics)+
-  geom_point()
-
-ggplot(aes(x = totalcover, y = avg_spl_low, color = habitat), data = ecometrics)+ theme_bw()+
-  geom_point(size = 3)+
-  geom_smooth(method = "lm", se = FALSE)+
-  scale_color_discrete(name = "Habitat type")+
-  ylab("Average sound pressure level (db re 1 uPa")+ 
-  xlab("Average percent cover")+
-  theme(axis.text = element_text(size = 16), 
-        axis.title = element_text(size = 18), 
-        legend.title = element_text(size = 18), 
-        legend.text = element_text(size = 16))
-
-#Habitat Metrics
-ggplot(aes(x = seagrass_comb, y = avg_spl_low, color = habitat), data = ecometrics)+
-  geom_point()
-
-ggplot(aes(x = saltmarsh, y = avg_spl_low, color = habitat), data = ecometrics)+
-  geom_point()
-
-ggplot(aes(x = saltmarsh, y = avg_spl_high, color = habitat), data = ecometrics)+
-  geom_point()
-
-ggplot(aes(x = oyster, y = avg_spl_high, color = habitat), data = ecometrics)+
-  geom_point()
-
-ggplot(aes(x = oyster, y = avg_spl_low, color = habitat), data = ecometrics)+
-  geom_point()
-
-# Community metrics
-ggplot(aes(x = total_abund_sum, y = avg_spl_low, color = habitat), data = ecometrics)+
-  geom_point()
-
-ggplot(aes(x = comm_evenness_sum, y = avg_spl_low, color = habitat), data = ecometrics)+
-  geom_point()
-
-ggplot(aes(x = comm_richness_sum, y = avg_spl_low, color = habitat), data = ecometrics)+
-  geom_point()
-
-ggplot(aes(x = X1_Depth_m, y = avg_spl_low, color = habitat), data = ecometrics)+
-  geom_point()
+Plandscape = summary(PmetricModLA)$r.squared - summary(PmetricModA)$r.squared
+Pabiotic = summary(PmetricModLA)$r.squared - summary(PmetricModL)$r.squared
+Punexplained = 1 - summary(PmetricModLA)$r.squared
+Ptotal = summary(PmetricModLA)$r.squared
 
 
 ```
+
+
