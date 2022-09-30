@@ -21,9 +21,6 @@ library(MuMIn)
 
 ecometrics = read.csv("data/clean_data/ecometrics.csv", header = TRUE)
 
-# make deployment a factor to include as a random effect
-ecometrics$deploy_num = as.numeric(ecometrics$deploy_num)
-
 ```
 
 ## Updated code: Evaluate correlations among all metrics
@@ -32,8 +29,10 @@ ecometrics$deploy_num = as.numeric(ecometrics$deploy_num)
 
 # Create new dataframe with only numeric metrics (remove id/character columns)
 # last minute thought to include deploy_num, but it is correlated with temperature (r = 0.66), so no need
+ecometrics$deploy_num = as.numeric(ecometrics$deploy_num)
 ecometrics_num = ecometrics %>%
-  select(-X, -site, -bare, -Habitat, -site_code, -habitat, -soniferous, -index, -total_hab_area, -adj_hab_type)
+  select(-X, -site, -bare, -Habitat, -site_code, -site_code2, -habitat, -soniferous, -index, -total_hab_area, -adj_hab_type)
+
 
 # Examine histogram of each metric - to decide on pearsons vs spearman rank correlation
 # data are mostly counts, so they are poisson distributed, not normal
@@ -47,8 +46,6 @@ ecometrics_num = ecometrics %>%
 
 # Correlations
 metricCorrEverything = cor(ecometrics_num, use = "everything", method = "pearson")
-
-# save both methods and compare output
 write.csv(metricCorrEverything, "data/clean_data/metricCorrEverything.csv")
 
 
@@ -68,15 +65,6 @@ ecometricsFilt = ecometrics_num %>%
 
 # Retained seagrass and species densities even though they are correlated with halodule
 # decided to remove algae because percent cover was so low and don't feel confident it was consistently measured - so removing to avoid reporting spurious results
-```
-
-## Correlations with sound metrics
-
-```{r}
-# soundCor = as.data.frame(metricCorFilt[c(27:30),c(2:27)])
-# rownames(soundCor) = c("avg_spl_low","avg_spl_high","ToadCallRate","ToadCallRateNorm")
-# 
-# soundCor = as.data.frame(t(soundCor))
 ```
 
 # SPL Low
@@ -320,6 +308,16 @@ grid.arrange(diversityH, richnessH, totalCoverH, oysterPerimH, soniferousSH, dep
 
 ```{r}
 
+
+# deploy_num
+# richness_comb
+# total_cover
+# carnivore
+# seagrass_perimeter
+# oyster_core.area
+# habitat_total
+
+
 #richness comb
 richnessT = ggplot(aes(x = richness_comb, y = ToadCallRate),data = ecometrics)+ theme_bw()+
   geom_point(aes(color = habitat))+
@@ -380,6 +378,22 @@ min(toadfish_rates$ToadCallRate)
 max(toadfish_rates$ToadCallRate)
 unique(toadfish_rates$habitat)
 unique(toadfish_rates$deploy_num)
+
+
+```
+
+# Silver Perch
+
+```{r}
+
+# richness
+# shannonD
+# seagrass
+# richness_comb
+# comm_shannonD_sum
+# seagrass_core_area
+# dist2adjPatch
+# avgTempNight
 
 
 ```
