@@ -389,26 +389,26 @@ unique(toadfish_rates$deploy_num)
 ```{r}
 
 # This currently doesn't account for habitat type - which likely confounds some trends
-metricModP = lm(avg_spl_low ~ halodule + ruppia + oyster + richness, data = ecometrics)
-metricModL = lm(avg_spl_low ~ seagrass_area + seagrass_perim.area.ratio, data = ecometrics)
-metricModC = lm(avg_spl_low ~ comm_shannonD_sum, data = ecometrics)
+metricModP = lm(avg_spl_low ~ halodule + ruppia + richness, data = ecometrics)
+metricModL = lm(avg_spl_low ~ seagrass_core.area + seagrass_perim.area.ratio + oyster_perimeter, data = ecometrics)
+metricModC = lm(avg_spl_low ~ comm_shannonD_sum + num_bai_chr, data = ecometrics)
 metricModA = lm(avg_spl_low ~ avg_temp, data = ecometrics)
-metricModPL = lm(avg_spl_low ~ halodule + ruppia + oyster + richness + seagrass_area + seagrass_perim.area.ratio,
+metricModPL = lm(avg_spl_low ~ halodule + ruppia + richness +  seagrass_core.area + seagrass_perim.area.ratio + oyster_perimeter,
                  data = ecometrics)
-metricModPC = lm(avg_spl_low ~ halodule + ruppia + oyster + richness + comm_shannonD_sum, data = ecometrics)
-metricModPA = lm(avg_spl_low ~ halodule + ruppia + oyster + richness + avg_temp, data = ecometrics)
-metricModLC = lm(avg_spl_low ~ seagrass_area + seagrass_perim.area.ratio + comm_shannonD_sum, data = ecometrics)
-metricModLA = lm(avg_spl_low ~ seagrass_area + seagrass_perim.area.ratio + avg_temp, data = ecometrics)
-metricModCA = lm(avg_spl_low ~ comm_shannonD_sum + avg_temp, data = ecometrics)
-metricModPLC = lm(avg_spl_low ~ halodule + ruppia + oyster + richness + seagrass_area + seagrass_perim.area.ratio
-                  + comm_shannonD_sum, data = ecometrics)
-metricModPLA = lm(avg_spl_low ~ halodule + ruppia + oyster + richness + seagrass_area + seagrass_perim.area.ratio
+metricModPC = lm(avg_spl_low ~ halodule + ruppia + richness + comm_shannonD_sum + num_bai_chr, data = ecometrics)
+metricModPA = lm(avg_spl_low ~ halodule + ruppia + richness + avg_temp, data = ecometrics)
+metricModLC = lm(avg_spl_low ~  seagrass_core.area + seagrass_perim.area.ratio + oyster_perimeter + comm_shannonD_sum + num_bai_chr, data = ecometrics)
+metricModLA = lm(avg_spl_low ~  seagrass_core.area + seagrass_perim.area.ratio + oyster_perimeter + avg_temp, data = ecometrics)
+metricModCA = lm(avg_spl_low ~ comm_shannonD_sum + num_bai_chr + avg_temp, data = ecometrics)
+metricModPLC = lm(avg_spl_low ~ halodule + ruppia + richness +  seagrass_core.area + seagrass_perim.area.ratio + oyster_perimeter
+                  + comm_shannonD_sum + num_bai_chr, data = ecometrics)
+metricModPLA = lm(avg_spl_low ~ halodule + ruppia + richness +  seagrass_core.area + seagrass_perim.area.ratio + oyster_perimeter
                   + avg_temp, data = ecometrics)
-metricMODPCA = lm(avg_spl_low ~ halodule + ruppia + oyster + richness + comm_shannonD_sum + avg_temp, data = ecometrics)
-metricModLCA = lm(avg_spl_low ~ seagrass_area + seagrass_perim.area.ratio + comm_shannonD_sum + avg_temp,
+metricMODPCA = lm(avg_spl_low ~ halodule + ruppia + richness + comm_shannonD_sum + num_bai_chr + avg_temp, data = ecometrics)
+metricModLCA = lm(avg_spl_low ~  seagrass_core.area + seagrass_perim.area.ratio + oyster_perimeter + comm_shannonD_sum + num_bai_chr + avg_temp,
                   data = ecometrics)
-metricModPLCA = lm(avg_spl_low ~ halodule + ruppia + oyster + richness + seagrass_area + seagrass_perim.area.ratio
-                  + comm_shannonD_sum + avg_temp, data = ecometrics)
+metricModPLCA = lm(avg_spl_low ~ halodule + ruppia + richness +  seagrass_core.area + seagrass_perim.area.ratio + oyster_perimeter
+                  + comm_shannonD_sum + num_bai_chr + avg_temp, data = ecometrics)
 
 AIC(metricModPLCA, metricModLCA, metricMODPCA, metricModPLA, metricModPLC, metricModCA, metricModLA, metricModLC,
     metricModPA, metricModPC, metricModPL, metricModP, metricModL, metricModC, metricModA) 
@@ -416,54 +416,87 @@ AIC(metricModPLCA, metricModLCA, metricMODPCA, metricModPLA, metricModPLC, metri
 model.sel(metricModPLCA, metricModLCA, metricMODPCA, metricModPLA, metricModPLC, metricModCA, metricModLA, metricModLC,
     metricModPA, metricModPC, metricModPL, metricModP, metricModL, metricModC, metricModA)
 
-# P, PA, CA, & C are all indiscernible by AICc
+# PLA, PL, C, LA, CA are all indiscernible by AICc
 # AICc is a correction for small sample size - should likely use here. 
+
+# AIC identified PLA as the best fit
 
 ```
 
 ## Modeling high frequency SPL and candidate ecometrics
 
 ```{r}
-HmetricModP = lm(avg_spl_low ~ halodule + ruppia + oyster + richness, data = ecometrics)
-HmetricModL = lm(avg_spl_low ~ seagrass_area + seagrass_perim.area.ratio, data = ecometrics)
-HmetricModC = lm(avg_spl_low ~ comm_shannonD_sum, data = ecometrics)
-HmetricModA = lm(avg_spl_low ~ avg_temp, data = ecometrics)
-HmetricModPL = lm(avg_spl_low ~ halodule + ruppia + oyster + richness + seagrass_area + seagrass_perim.area.ratio,
-                 data = ecometrics)
-HmetricModPC = lm(avg_spl_low ~ halodule + ruppia + oyster + richness + comm_shannonD_sum, data = ecometrics)
-HmetricModPA = lm(avg_spl_low ~ halodule + ruppia + oyster + richness + avg_temp, data = ecometrics)
-HmetricModLC = lm(avg_spl_low ~ seagrass_area + seagrass_perim.area.ratio + comm_shannonD_sum, data = ecometrics)
-HmetricModLA = lm(avg_spl_low ~ seagrass_area + seagrass_perim.area.ratio + avg_temp, data = ecometrics)
-HmetricModCA = lm(avg_spl_low ~ comm_shannonD_sum + avg_temp, data = ecometrics)
-HmetricModPLC = lm(avg_spl_low ~ halodule + ruppia + oyster + richness + seagrass_area + seagrass_perim.area.ratio
-                  + comm_shannonD_sum, data = ecometrics)
-HmetricModPLA = lm(avg_spl_low ~ halodule + ruppia + oyster + richness + seagrass_area + seagrass_perim.area.ratio
-                  + avg_temp, data = ecometrics)
-HmetricMODPCA = lm(avg_spl_low ~ halodule + ruppia + oyster + richness + comm_shannonD_sum + avg_temp, data = ecometrics)
-HmetricModLCA = lm(avg_spl_low ~ seagrass_area + seagrass_perim.area.ratio + comm_shannonD_sum + avg_temp,
+HmetricModP = lm(avg_spl_low ~ shannonD + richness_comb + total_cover , data = ecometrics)
+HmetricModL = lm(avg_spl_low ~ oyster_perimeter, data = ecometrics)
+HmetricModC = lm(avg_spl_low ~ soniferous_S, data = ecometrics)
+HmetricModA = lm(avg_spl_low ~ deploy_num + avg_temp + depth_m_avg + sal_avg, data = ecometrics)
+HmetricModPL = lm(avg_spl_low ~ shannonD + richness_comb + total_cover  + oyster_perimeter, data = ecometrics)
+HmetricModPC = lm(avg_spl_low ~ shannonD + richness_comb + total_cover  + soniferous_S, data = ecometrics)
+HmetricModPA = lm(avg_spl_low ~ shannonD + richness_comb + total_cover  + deploy_num + avg_temp + depth_m_avg + sal_avg, data = ecometrics)
+HmetricModLC = lm(avg_spl_low ~ oyster_perimeter + soniferous_S, data = ecometrics)
+HmetricModLA = lm(avg_spl_low ~ oyster_perimeter + deploy_num + avg_temp + depth_m_avg + sal_avg, data = ecometrics)
+HmetricModCA = lm(avg_spl_low ~ soniferous_S + deploy_num + avg_temp + depth_m_avg + sal_avg, data = ecometrics)
+HmetricModPLC = lm(avg_spl_low ~ shannonD + richness_comb + total_cover  + oyster_perimeter + soniferous_S, data = ecometrics)
+HmetricModPLA = lm(avg_spl_low ~ shannonD + richness_comb + total_cover  + oyster_perimeter
+                  + deploy_num + avg_temp + depth_m_avg + sal_avg, data = ecometrics)
+HmetricModPCA = lm(avg_spl_low ~ shannonD + richness_comb + total_cover  + soniferous_S + deploy_num + avg_temp + depth_m_avg + sal_avg, data = ecometrics)
+HmetricModLCA = lm(avg_spl_low ~ oyster_perimeter + soniferous_S + deploy_num + avg_temp + depth_m_avg + sal_avg,
                   data = ecometrics)
-HmetricModPLCA = lm(avg_spl_low ~ halodule + ruppia + oyster + richness + seagrass_area + seagrass_perim.area.ratio
-                  + comm_shannonD_sum + avg_temp, data = ecometrics)
+HmetricModPLCA = lm(avg_spl_low ~ shannonD + richness_comb + total_cover  + oyster_perimeter
+                  + soniferous_S + deploy_num + avg_temp + depth_m_avg + sal_avg, data = ecometrics)
 
-model.sel(metricModPLCA, metricModLCA, metricMODPCA, metricModPLA, metricModPLC, metricModCA, metricModLA, metricModLC,
-    metricModPA, metricModPC, metricModPL, metricModP, metricModL, metricModC, metricModA)
+model.sel(HmetricModPLCA, HmetricModLCA, HmetricModPCA, HmetricModPLA, HmetricModPLC, HmetricModCA, HmetricModLA, HmetricModLC,
+    HmetricModPA, HmetricModPC, HmetricModPL, HmetricModP, HmetricModL, HmetricModC, HmetricModA)
 
+AIC(HmetricModPLCA, HmetricModLCA, HmetricModPCA, HmetricModPLA, HmetricModPLC, HmetricModCA, HmetricModLA, HmetricModLC,
+    HmetricModPA, HmetricModPC, HmetricModPL, HmetricModP, HmetricModL, HmetricModC, HmetricModA)
+
+# within 2 AIC
+# AICc: PL & PLC
+# AIC: PLC, PLCA, PLA, & PL 
+
+# Variance partitioning High Frequency:
+# the math is correct there are negative shared variances - look into more to understand
+H_patch = summary(HmetricModPLC)$r.squared - summary(HmetricModLC)$r.squared
+H_landscape = summary(HmetricModPLC)$r.squared - summary(HmetricModPC)$r.squared
+H_comm = summary(HmetricModPLC)$r.squared - summary(HmetricModPL)$r.squared
+
+H_unexplained = 1- summary(HmetricModPLC)$r.squared
+
+# sum of unique explanation is greater than the total?? something seems wrong there
+# is the unique explanation 37% of the total (or 37% of the 70% explained?)
+Htotal_explained = summary(HmetricModPLC)$r.squared
+H_patch + H_landscape + H_comm
+
+
+# advises against variance partitioning with more than three categories - can you variable weights from AIC to justify which metric categories should be included. 
 ```
 
 ### Modeling toadfish
 
 ```{r}
 
-TmetricModP = lm(ToadCallRate ~ oyster + richness, data = ecometrics)
-TmetricModL = lm(ToadCallRate ~ habitat_total, data = ecometrics)
-TmetricModPL = lm(ToadCallRate ~ oyster + richness + habitat_total,
-                 data = ecometrics)
+TmetricModP = lm(ToadCallRate ~ richness_comb + total_cover, data = ecometrics)
+TmetricModL = lm(ToadCallRate ~ oyster_area, data = ecometrics)
+TmetricModA = lm(ToadCallRate ~ deploy_num, data = ecometrics)
+TmetricModPL = lm(ToadCallRate ~ richness_comb + total_cover + oyster_area, data = ecometrics)
+TmetricModPA = lm(ToadCallRate ~ richness_comb + total_cover, data = ecometrics)
+TmetricModLA = lm(ToadCallRate ~ oyster_area + deploy_num, data = ecometrics)
+TmetricModPLA = lm(ToadCallRate ~ richness_comb + total_cover + oyster_area + deploy_num, data = ecometrics)
 
+AIC(TmetricModPLA, TmetricModPL, TmetricModPA, TmetricsModLA, TmetricModP, TmetricModL, TmetricModA) 
 
-AIC(TmetricModPL, TmetricModP, TmetricModL) 
+model.sel(TmetricModPLA, TmetricModPL, TmetricModPA, TmetricsModLA, TmetricModP, TmetricModL, TmetricModA)
 
-model.sel(TmetricModPL, TmetricModP, TmetricModL)
+#AIC: PLA
+#AICc: PLA
 
+# attempting variance partitioning 
+
+Tpatch = summary(TmetricModPLA)$r.squared - summary(TmetricModLA)$r.squared
+Tlandscape = summary(TmetricModPLA)$r.squared - summary(TmetricModPA)$r.squared
+Tabiotic = summary(TmetricModPLA)$r.squared - summary(TmetricModPL)$r.squared
+Tunexplained = 1 - summary(TmetricModPLA)$r.squared
 
 
 ```

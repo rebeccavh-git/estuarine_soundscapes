@@ -297,7 +297,10 @@ annMetrics = read.csv("data/raw_data/nearest_neighbor_results.csv", header = TRU
 
 ```{r}
 
-tempST = read.csv("data/clean_data/pmHT_tempAvg.csv", header = TRUE)
+tempSTpmHT = read.csv("data/clean_data/pmHT_tempAvg.csv", header = TRUE)
+
+tempAll = read.csv("data/clean_data/soundHabTemp.csv", header = TRUE)
+
 
 ```
 
@@ -308,7 +311,10 @@ tempST = read.csv("data/clean_data/pmHT_tempAvg.csv", header = TRUE)
 spl_pmHT = as.data.frame(read.csv("data/clean_data/avg_pmHT_SPL.csv", header = TRUE))
 
 # Toadfish call rates
-toadfish = read.csv("data/clean_data/ToadfishCallRate.csv")
+toadfish = read.csv("data/clean_data/TF_callRatesNight.csv")
+
+# Silver Perch
+perch = read.csv("data/clean_data/PerchcallRatesNight.csv")
 
 # # Add bioacoustic index 
 # BI = read.csv("data/clean_data/bioacousticIndex.csv")
@@ -326,20 +332,24 @@ ecometrics = left_join(ecometrics, seagrass_all[,c("site","avg_blade_length","av
 #create matching habitat variable to join habitat and trawl data
 ecometrics$site_code = c("C7","MF2","SG10","SG12","C2","MF1","SG2","SG4","CB","MFA","SB","SC","C8","MF7","SG6","SG9",
                          "C4","C5","S14","S15","C3","C6","SG1","SG17")
+ecometrics$site_code2 = c("C7","M2","S10","S12","C2","M1","S2","S4","CB","MA","SB","SC","C8","M7","S6","S9",
+                         "C4","C5","S14","S15","C3","C6","S1","S17")
 ecometrics = left_join(ecometrics, trawl_metrics, by = c("site_code"="Project.Site.Name"))
 
 ecometrics = left_join(ecometrics, landscapeMetrics, by = c("site_code" = "site"))
 ecometrics = left_join(ecometrics, annMetrics[,c("site_code","NNratio","dist2adjPatch","adj_hab_type","richness_landscape")], by = "site_code")
-ecometrics = left_join(ecometrics, tempST, by = "site_code")
+ecometrics = left_join(ecometrics, tempSTpmHT, by = "site_code")
+ecometrics = left_join(ecometrics, tempAll, by = c("site_code2" = "site"))
 ecometrics = left_join(ecometrics, spl_pmHT, by = c("site_code" = "site"))
-ecometrics = left_join(ecometrics, toadfish, by = c("site_code" = "Site"))
+ecometrics = left_join(ecometrics, toadfish, by = c("site_code2" = "Site"))
+ecometrics = left_join(ecometrics, perch, by = c("site_code2" = "Site"))
 
 # Convert seagrass canopy NAs to zeros
 ecometrics$avg_blade_length[is.na(ecometrics$avg_blade_length)] = 0
 ecometrics$avg_shoot_density[is.na(ecometrics$avg_shoot_density)] = 0
 ecometrics$max10[is.na(ecometrics$max10)] = 0
 
-ecometrics$ToadCallRate[is.na(ecometrics$ToadCallRate)] = 0
+#ecometrics$ToadCallRate[is.na(ecometrics$ToadCallRate)] = 0
 
 # remove temperature from trawl data
 ecometrics = ecometrics %>%
