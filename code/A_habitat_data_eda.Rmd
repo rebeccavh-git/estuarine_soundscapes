@@ -60,6 +60,7 @@ site_means$richness = apply(site_means[,c("halodule","zostera","ruppia","saltmar
 site_means$shannonD = diversity(site_means[,c("halodule","zostera","ruppia","saltmarsh","oyster")], "shannon")
 site_means$evenness = site_means$shannonD/log(site_means$richness, base = 2)
 
+
 ```
 
 ## Summarized by seagrass 
@@ -104,6 +105,18 @@ ggplot(seagrass_pc_long, aes(x = perc_cover, y = identity, color = identity))+ t
 site_means_comb$richness_comb = apply(site_means_comb[,c("seagrass","oyster","saltmarsh")]>0, 1, sum)
 site_means_comb$shannonD_comb = diversity(site_means_comb[,c("seagrass","oyster","saltmarsh")], "shannon")
 site_means_comb$evenness_comb = site_means_comb$shannonD_comb/log(site_means_comb$richness_comb, base = 2)
+
+### attempting a stacked bar chart summarizing patch-scale cover
+# use siteMean_pc_comb
+
+patchScale4fig_comb = siteMean_pc_comb[!(siteMean_pc_comb$identity == "other"| 
+                                      siteMean_pc_comb$identity == "algae" | 
+                                      siteMean_pc_comb$identity == "bare"),]
+
+# edit to show descending order of total cover? 
+ggplot(aes(x = site, y = perc_cover, fill = identity), data = patchScale4fig_comb)+ theme_bw()+
+  geom_bar(stat = "identity")
+
 
 ```
 
@@ -275,6 +288,8 @@ trawl_metrics = left_join(trawl_metrics, guild2_abund, by = "Project.Site.Name")
 # Retain abundances of species of interest
 trawl_metrics = left_join(trawl_metrics, std_catch_sum[,c("Project.Site.Name","num_bai_chr","num_ort_chr","num_ops_tau")], by="Project.Site.Name")
 
+## stacked bar graph of trawl data
+
 
 ```
 
@@ -366,22 +381,76 @@ ecometrics$sal_avg[is.na(ecometrics$sal_avg)] = mean(ecometrics$sal_avg, na.rm =
 
 ```{r}
 
-write.csv(ecometrics, "data/clean_data/ecometrics.csv")
-
-# Filter ecometrics to habitat specific data and save
-ecometrics_seagrass = ecometrics %>%
-  filter(Habitat == "Seagrass")
-ecometrics_creek = ecometrics %>%
-  filter(Habitat == "Creek")
-ecometrics_mudflat = ecometrics %>%
-  filter(Habitat == "Mudflat")
-
-write.csv(ecometrics_seagrass, "data/clean_data/ecometricsSeagrass.csv")
-write.csv(ecometrics_creek, "data/clean_data/ecometricsCreek.csv")
-write.csv(ecometrics_mudflat, "data/clean_data/ecometricsMudflat.csv")
+# write.csv(ecometrics, "data/clean_data/ecometrics.csv")
+# 
+# # Filter ecometrics to habitat specific data and save
+# ecometrics_seagrass = ecometrics %>%
+#   filter(Habitat == "Seagrass")
+# ecometrics_creek = ecometrics %>%
+#   filter(Habitat == "Creek")
+# ecometrics_mudflat = ecometrics %>%
+#   filter(Habitat == "Mudflat")
+# 
+# write.csv(ecometrics_seagrass, "data/clean_data/ecometricsSeagrass.csv")
+# write.csv(ecometrics_creek, "data/clean_data/ecometricsCreek.csv")
+# write.csv(ecometrics_mudflat, "data/clean_data/ecometricsMudflat.csv")
 
 ```
 
+## Summaries & figures for manuscript
+
+```{r}
+
+# Patch Scale Cover
+patchScale4fig = siteMean_pc[!(siteMean_pc$identity == "other"| 
+                                      siteMean_pc$identity == "algae" | 
+                                      siteMean_pc$identity == "bare"),]
+
+patchScale4fig$identity = factor(patchScale4fig$identity ,levels = c("ruppia", "zostera", "halodule", "oyster", "saltmarsh"))
+ggplot(aes(x = site, y = perc_cover, fill = identity), data = patchScale4fig)+ theme_bw()+
+  geom_bar(stat = "identity")+
+  labs(x = "Site", y = "Percent cover", fill = "Habitat")+
+  scale_fill_viridis_d()+
+  theme(axis.text.x = element_text(angle = 90),
+        legend.position = "top")
+  
+
+# Landscape area
+landscapeArea = landscapeMetrics %>%
+  select(index, site, seagrass_area, saltmarsh_area, oyster_area) %>%
+  pivot_longer(cols = c(seagrass_area, saltmarsh_area, oyster_area), names_to = "Habitat", values_to = "Area")
+
+ggplot(aes(x = site, y = Area, fill = Habitat), data = landscapeArea)+ theme_bw()+
+  geom_bar(stat = "identity")+
+  labs(x = "Site", y = "Area", fill = "Habitat")+
+  scale_fill_viridis_d()+
+  theme(axis.text.x = element_text(angle = 90),
+        legend.position = "top")
+
+# Trawl Metrics
+ggplot(aes(x = site, y = total_abund_sum), data = ecometrics)+ theme_bw()+
+  geom_bar(stat = "identity")+
+  labs(x = "Site", y = "Total CPUE")+
+  theme(axis.text.x = element_text(angle = 90))+
+  annotate("text",x=ecometrics$site,y=ecometrics$total_abund_sum+30,label=ecometrics$comm_richness_sum)
+  
+
+# Abiotic summaries
+min(ecometrics$sal_avg)
+max(ecometrics$sal_avg)
+mean(ecometrics$sal_avg)
+
+min(ecometrics$depth_m_avg)
+max(ecometrics$depth_m_avg)
+mean(ecometrics$depth_m_avg)
+
+tempNightAllSites = read.csv("data/clean_data/SoundHabTempNightAllSites.csv", header = TRUE)
+tempNightAllSites$deployment = factor(tempNightAllSites$deployment)
+ggplot(aes(x = deployment, y = temperature), data = tempNightAllSites)+theme_bw()+
+  geom_boxplot()+
+  labs(x = "Deployment", y = "Temperature")
+
+```
 
 
 

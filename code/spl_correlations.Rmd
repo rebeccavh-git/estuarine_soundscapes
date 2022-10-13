@@ -182,6 +182,11 @@ cor(ecometrics$avg_temp, ecometrics$avg_spl_low, method = "pearson")
 
 grid.arrange(halodule, ruppia, richness, sgCoreArea, patchiness, oysterPerim, diversity, perch, temp, nrow =3)
 
+min(ecometrics$avg_spl_low)
+max(ecometrics$avg_spl_low)
+
+
+
 ```
 
 # SPL High
@@ -302,6 +307,9 @@ cor(ecometrics$depth_m_avg, ecometrics$avg_spl_high, method = "pearson")
 #grid.arrange(oysterH, richnessH, totalHabH,tempH, salinityH, depthH, nrow = 2,ncol = 3)
 grid.arrange(diversityH, richnessH, totalCoverH, oysterPerimH, soniferousSH, deployH,tempH, salinityH, depthH, nrow = 3)
 
+min(ecometrics$avg_spl_high)
+max(ecometrics$avg_spl_high)
+
 ```
 
 # Toadfish
@@ -398,7 +406,7 @@ grid.arrange(richnessT, totalCoverT,  oysterCoreAreaT, seagrassPerimT, habitatTo
 ## Summary of toadfish call rates
 toadfish_rates = ecometrics %>%
   select(site, habitat,deploy_num,TFAvgPresentNight) %>%
-  filter(ToadCallRate > 0)
+  filter(TFAvgPresentNight > 0)
 
 min(toadfish_rates$TFAvgPresentNight)
 max(toadfish_rates$TFAvgPresentNight)
@@ -483,6 +491,7 @@ dist2adjPatchP = ggplot(aes(x = dist2adjPatch, y = PerchAvgPresentNight),data = 
         axis.text = element_text(size = 16),
         legend.position = "none")
 cor(ecometrics$dist2adjPatch, ecometrics$PerchAvgPresentNight, method= "pearson")
+
 # pos relationship is even stronger when MA (outlier) is removed
 perchIsolation = ecometrics$dist2adjPatch
 perchIsolation[12] = NA
@@ -515,6 +524,17 @@ avgTempP = ggplot(aes(x = avgTempNight, y = PerchAvgPresentNight),data = ecometr
 cor(ecometrics$avgTempNight, ecometrics$PerchAvgPresentNight, method= "pearson")
 
 grid.arrange(richnessP, shannonDP, seagrassP, richness_combP, seagrassCoreAreaP, dist2adjPatchP, comm_shannonDP, avgTempP, ncol = 4)
+
+# Silver perch call summary
+perch_rates = ecometrics %>%
+  select(site, habitat,deploy_num,PerchAvgPresentNight) %>%
+  filter(PerchAvgPresentNight > 0)
+
+min(perch_rates$PerchAvgPresentNight)
+max(perch_rates$PerchAvgPresentNight)
+unique(perch_rates$habitat)
+unique(perch_rates$deploy_num)
+
 
 ```
 
@@ -560,7 +580,7 @@ Llandscape = summary(metricModPLA)$r.squared - summary(metricModPA)$r.squared
 Labiotic = summary(metricModPLA)$r.squared - summary(metricModPL)$r.squared
 Lunexplained = 1 - summary(metricModPLA)$r.squared
 Ltotal = summary(metricModPLA)$r.squared
-
+Lcomm = 0
 ```
 
 ## Modeling High frequency SPL
@@ -603,11 +623,12 @@ Hlandscape = summary(HmetricModPLC)$r.squared - summary(HmetricModPC)$r.squared
 Hcommunity = summary(HmetricModPLC)$r.squared - summary(HmetricModPL)$r.squared
 Hunexplained = 1- summary(HmetricModPLC)$r.squared
 Htotal = summary(HmetricModPLC)$r.squared
+Habiotic = 0
 
 # sum of unique explanation is greater than the total?? something seems wrong there
 # negative shared variance
-Htotal_explained = summary(HmetricModPLC)$r.squared
-H_patch + H_landscape + H_comm
+#Htotal_explained = summary(HmetricModPLC)$r.squared
+#Hpatch + Hlandscape + Hcommunity
 
 # Allen advises against variance partitioning with more than three categories - 
 # can use variable weights from AIC to justify which metric categories should be included. 
@@ -650,6 +671,7 @@ Tabiotic = summary(TmetricModPLA)$r.squared - summary(TmetricModPL)$r.squared
 Tunexplained = 1 - summary(TmetricModPLA)$r.squared
 Ttotal = summary(TmetricModPLA)$r.squared 
 Tpatch+Tlandscape+Tabiotic+Tunexplained
+Tcomm = 0
 
 ```
 
@@ -684,8 +706,46 @@ Plandscape = summary(PmetricModLA)$r.squared - summary(PmetricModA)$r.squared
 Pabiotic = summary(PmetricModLA)$r.squared - summary(PmetricModL)$r.squared
 Punexplained = 1 - summary(PmetricModLA)$r.squared
 Ptotal = summary(PmetricModLA)$r.squared
-
+Ppatch = 0
+Pcomm = 0
 
 ```
 
+### Putting variance partitioning results into a figure
+
+religion = soundmetric
+category = column names
+count = stored in values
+
+```{r}
+
+
+soundMetric = rbind("vpLow", "vpHigh", "vpToad", "vpPerch")
+vpLow = c(Lpatch, Llandscape, Lcomm, Labiotic)
+vpHigh = c(Hpatch, Hlandscape, Hcommunity, Habiotic)
+vpToad = c(Tpatch, Tlandscape, Tcomm, Tabiotic)
+vpPerch = c(Ppatch, Plandscape, Pcomm, Pabiotic)
+
+resultsVP = as.data.frame(rbind(vpLow,vpHigh,vpToad,vpPerch))
+resultsVP = cbind(soundMetric,resultsVP)
+colnames(resultsVP) = c("SoundMetric", "Patch-scale habitat", "Landscape-scale habitat", "Community", "Abiotic")
+
+# Pivot longer
+resultsVP = resultsVP %>%
+  pivot_longer(!SoundMetric, names_to = "Category", values_to = "VarianceExplained")
+resultsVP$SoundMetric = as.factor(resultsVP$SoundMetric)
+
+resultsVP$SoundscapeMetric = case_when(resultsVP$SoundMetric == "vpHigh" ~ "SPL High", 
+                                     resultsVP$SoundMetric == "vpLow" ~ "SPL Low", 
+                                     resultsVP$SoundMetric == "vpPerch" ~ "Perch", 
+                                     resultsVP$SoundMetric == "vpToad" ~ "Toadfish")
+class(resultsVP$SoundscapeMetric)
+resultsVP$SoundscapeMetric = factor(resultsVP$SoundscapeMetric, levels = c("SPL Low", "SPL High", "Toadfish", "Perch"))
+
+ggplot(aes(x = SoundscapeMetric, y = VarianceExplained, fill = Category), data = resultsVP)+ theme_bw()+
+  geom_bar(stat = "identity")+
+  xlab("Soundscape Metric")+
+  ylab("Proportion variance explained")
+
+```
 
