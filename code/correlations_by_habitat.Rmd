@@ -42,6 +42,15 @@ summary(splHbyhabitat)
 SPLHbyHabAOV = aov(splHbyhabitat)
 TukeyHSD(SPLHbyHabAOV)
 
+perchbyhabitat = lm(PerchAvgPresentNight ~ habitat, data = ecometrics)
+summary(perchbyhabitat)
+perchbyHabAOV = aov(perchbyhabitat)
+TukeyHSD(perchbyHabAOV)
+
+toadbyhabitat = lm(TFAvgPresentNight ~ habitat, data = ecometrics)
+summary(toadbyhabitat)
+toadbyHabAOV = aov(toadbyhabitat)
+TukeyHSD(toadbyHabAOV)
 
 # # SPL by nearest adj habitat type (landscape) 
 # ggplot(data = metricsSG, aes(x = adj_hab_type, y = avg_spl_low))+ theme_bw()+

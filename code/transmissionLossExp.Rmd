@@ -18,54 +18,39 @@ library(dplyr)
 library(tidyr)
 library(ggplot2)
 
-signals = read.csv("data/sound_exp/signalSPLdata.csv", header = TRUE)
-
 ```
 
-## Tidy data
+#### Summarizing data with dplyr to get error bars
 
 ```{r}
 
-# group by site, frequency, distance, then calc mean spl
+# TL for each signal was calculated manually
 
-meanSPL = signals %>%
-  group_by(site, frequency, distance) %>%
-  summarize(meanSPL = mean(spl1,spl2,spl3,spl4,spl5,spl6,spl7,spl8,spl9,spl10))
+signalTL = read.csv("data/sound_exp/signalSPLdata.csv")
+
+TL = signalTL[,c(1:10,21:30)]
+TL = pivot_longer(TL,cols = c(11:20), names_to = "replicate", values_to = "TransLoss")
+
+TLsummary = TL %>%
+  group_by(site, distance, frequency, depthSt_cm) %>%
+  summarise(meanTL = mean(TransLoss), quant5 = quantile(TransLoss, 0.05), quant95 = quantile(TransLoss, 0.95), 
+            sdTL = sd(TransLoss))
+
+ggplot(aes(x = distance, y = meanTL, color = site), data = TLsummary)+ theme_bw()+ 
+  geom_point(aes(group = site), position = position_dodge(width = 0.5))+
+  geom_errorbar(aes(x = distance, ymin = quant5, ymax = quant95), 
+                width = 0.5, position = position_dodge(width = 0.5))+
+  geom_line(aes(group = site), position = position_dodge(width = 0.5))+
+  scale_color_manual(values = c("#39568CFF" ,"#55C667FF"))+
+  facet_wrap(facets = TLsummary$frequency)+
+  labs(x = "Disance", y = "Transmission Loss", legend = "Habitat")
+
+min(signalTL$depthSt_cm)
+max(signalTL$depthSt_cm)
 
 
-Tloss = meanSPL %>%
-  group_by(site,frequency) %>%
-  summarize(TL0 = meanSPL)
 
 
 ```
 
-# Cheat with excel TL quick and dirty summary
 
-```{r}
-
-signals$signalF = signals$frequency
-
-# What do I use as the y? 
-# do I need to change to long form?
-#ggplot(data = signals, aes(x = distance))
-
-
-
-tLoss = as.data.frame(read.csv("data/sound_exp/signalTLdata.csv", header = TRUE))
-
-tLoss$site = factor(tLoss$site)
-tLoss$distance = factor(tLoss$distance)
-tLoss$frequency = factor(tLoss$frequency)
-STdistance = tLoss$distance
-tLoss$signalF = tLoss$frequency
-
-ggplot(data = tLoss, aes(x = STdistance, y = meanTL, color = site))+ theme_bw()+
-  geom_point()+
-  geom_smooth()+
-  facet_wrap(facets = signalF)
-
-
-distance
-
-```

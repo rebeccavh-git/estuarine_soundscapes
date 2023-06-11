@@ -26,12 +26,14 @@ library(rasterVis)
 ## Seagrass metrics
 - Exported raster with a pixel size of 3.2 ft (equivalent 1m)
 Landscape metrics required meter resolution
+
 ```{r}
 #SG1 - manually identified habitats
-SG1_class = raster('data/classified_raster/Classification_Seagrass_1_image2.tif')
+SG1_class = raster('C:/Users/Becca/Documents/git/sound_habitat_2019/data/classified_raster/Classification_Seagrass_1_image2.tif')
 #plot(SG1_class)
 # calculate metrics
 SG_1_patch = PatchStat(SG1_class, cell = 1) 
+SG_1_class = ClassStat(SG1_class, cell = 1)
 # manually add habitat classification titles from arcmap order 
 SG_1_patch = SG_1_patch %>% 
   mutate(habitat = c("mudflat","seagrass", "saltmarsh", "oyster","sand"), site= "SG1")
@@ -235,6 +237,10 @@ write.csv(land_wide, file = "data/clean_data/landscape_metrics.csv")
 
 
 ```
+
+
+#### Here to end was exploratory - code above was used in analysis
+
 
 ## Landscape metrics package
 

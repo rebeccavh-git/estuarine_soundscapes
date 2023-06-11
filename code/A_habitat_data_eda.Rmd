@@ -407,11 +407,18 @@ patchScale4fig = siteMean_pc[!(siteMean_pc$identity == "other"|
                                       siteMean_pc$identity == "bare"),]
 
 patchScale4fig$identity = factor(patchScale4fig$identity ,levels = c("ruppia", "zostera", "halodule", "oyster", "saltmarsh"))
-ggplot(aes(x = site, y = perc_cover, fill = identity), data = patchScale4fig)+ theme_bw()+
+
+dfOrder = c(1,4,2,3,5,8,6,7,9,12,10,11,13,16,14,15,17,18,19,20,21,22,23,24)
+patchScale4fig$index = rep(dfOrder,5)
+
+ggplot(aes(x = reorder(site,index), y = perc_cover, fill = identity), data = patchScale4fig)+ theme_bw()+
   geom_bar(stat = "identity")+
   labs(x = "Site", y = "Percent cover", fill = "Habitat")+
-  scale_fill_viridis_d()+
-  theme(axis.text.x = element_text(angle = 90),
+  scale_fill_manual(values = c("#7ad151", "#2a788e","#22a884", "#440154", "#414487"))+
+  theme(axis.text.x = element_text(size = 12),
+        axis.title = element_text(size = 14),
+        legend.text = element_text(size = 12),
+        legend.title = element_blank(),
         legend.position = "top")
   
 
@@ -420,19 +427,25 @@ landscapeArea = landscapeMetrics %>%
   select(index, site, seagrass_area, saltmarsh_area, oyster_area) %>%
   pivot_longer(cols = c(seagrass_area, saltmarsh_area, oyster_area), names_to = "Habitat", values_to = "Area")
 
-ggplot(aes(x = site, y = Area, fill = Habitat), data = landscapeArea)+ theme_bw()+
+landscapeArea$Habitat = factor(landscapeArea$Habitat)
+
+ggplot(aes(x = reorder(site, index), y = Area, fill = Habitat), data = landscapeArea)+ theme_bw()+
   geom_bar(stat = "identity")+
   labs(x = "Site", y = "Area", fill = "Habitat")+
-  scale_fill_viridis_d()+
-  theme(axis.text.x = element_text(angle = 90),
+  scale_fill_manual(values = c("#440154","#414487", "#22a884"))+
+  theme(axis.text.x = element_text(size = 12),
+        axis.title = element_text(size = 14),
+        legend.title = element_blank(),
+        legend.text = element_text(size = 12),
         legend.position = "top")
 
 # Trawl Metrics
-ggplot(aes(x = site, y = total_abund_sum), data = ecometrics)+ theme_bw()+
+ggplot(aes(x = reorder(site,index), y = total_abund_sum), data = ecometrics)+ theme_bw()+
   geom_bar(stat = "identity")+
   labs(x = "Site", y = "Total CPUE")+
-  theme(axis.text.x = element_text(angle = 90))+
-  annotate("text",x=ecometrics$site,y=ecometrics$total_abund_sum+30,label=ecometrics$comm_richness_sum)
+  theme(axis.text.x = element_text(size = 12),
+        axis.title = element_text(size = 14))+
+  annotate("text",x=ecometrics$index,y=ecometrics$total_abund_sum+30,label=ecometrics$comm_richness_sum)
   
 
 # Abiotic summaries
@@ -448,7 +461,9 @@ tempNightAllSites = read.csv("data/clean_data/SoundHabTempNightAllSites.csv", he
 tempNightAllSites$deployment = factor(tempNightAllSites$deployment)
 ggplot(aes(x = deployment, y = temperature), data = tempNightAllSites)+theme_bw()+
   geom_boxplot()+
-  labs(x = "Deployment", y = "Temperature")
+  labs(x = "Sampling period", y = "Temperature")+
+  theme(axis.title = element_text(size = 14), 
+        axis.text = element_text(size = 12))
 
 ```
 
